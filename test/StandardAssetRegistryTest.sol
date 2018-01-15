@@ -8,4 +8,9 @@ contract StandardAssetRegistryTest is StandardAssetRegistry {
     _name = "Test";
     _symbol = "TEST";
   }
+
+  function isContractProxy(address addr) public view returns (bool) {
+    return isContract(addr);
+  }
+
 }

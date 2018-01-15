@@ -133,8 +133,24 @@ contract('StandardAssetRegistry', accounts => {
     it('returns an empty array for an inexistent address', async () => {
       const assets = await registry.assetsOf(NONE)
       const convertedAssets = assets.map(big => big.toString())
-      console.log(assets)
       convertedAssets.should.have.all.members([])
+    })
+  })
+
+  describe('isContract', () => {
+    it('returns true for a valid contract address', async () => {
+      const isContract = await registry.isContractProxy(registry.address)
+      isContract.should.equal(true)
+    })
+
+    it('returns false for a user address', async () => {
+      const isContract = await registry.isContractProxy(user)
+      isContract.should.equal(false)
+    })
+
+    it('returns false for an inexistant address', async () => {
+      const isContract = await registry.isContractProxy(NONE)
+      isContract.should.equal(false)
     })
   })
 
