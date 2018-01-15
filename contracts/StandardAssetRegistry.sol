@@ -154,16 +154,16 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
   //
 
   function generate(uint256 assetId) public {
-    generate(assetId, msg.sender, '');
+    doGenerate(assetId, msg.sender, '');
   }
 
   function generate(uint256 assetId, string data) public {
-    generate(assetId, msg.sender, data);
+    doGenerate(assetId, msg.sender, data);
   }
 
-  function generate(uint256 assetId, address _beneficiary, string data) public {
-    doGenerate(assetId, _beneficiary, data);
-  }
+//  function generate(uint256 assetId, address _beneficiary, string data) public {
+//    doGenerate(assetId, _beneficiary, data);
+//  }
 
   function doGenerate(uint256 assetId, address _beneficiary, string data) internal {
     require(_holderOf[assetId] == 0);

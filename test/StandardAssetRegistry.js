@@ -83,4 +83,13 @@ contract('StandardAssetRegistry', accounts => {
     })
   })
 
+  describe('Supply Altering Functions', () => {
+    describe('generate only with assetId', () => {
+      it('asset create by creator', async () => {
+        await registry.generate(2)
+        console.log(await registry.holderOf(2))
+      })
+    })
+  })
+
 })
