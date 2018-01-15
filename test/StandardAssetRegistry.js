@@ -133,7 +133,6 @@ contract('StandardAssetRegistry', accounts => {
     it('returns an empty array for an inexistent address', async () => {
       const assets = await registry.assetsOf(NONE)
       const convertedAssets = assets.map(big => big.toString())
-      console.log(assets)
       convertedAssets.should.have.all.members([])
     })
   })
