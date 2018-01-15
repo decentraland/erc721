@@ -40,11 +40,12 @@ contract('StandardAssetRegistry', accounts => {
     gasPrice: 21e9,
     from: creator
   }
+  const CONTENT_DATA = 'test data'
 
   beforeEach(async function() {
     registry = await StandardAssetRegistry.new(creationParams)
-    await registry.generate(0, user, sentByCreator)
-    await registry.generate(1, user, sentByCreator)
+    await registry.generate(0, CONTENT_DATA, sentByCreator)
+    await registry.generate(1, CONTENT_DATA, sentByCreator)
   })
 
   describe('name', () => {
@@ -119,9 +120,8 @@ contract('StandardAssetRegistry', accounts => {
 
   describe('assetData', async () => {
     it ('should returns the proper data', async () => {
-      const data = '0x6704fbfcd5ef766b287262fa2281c105d57246a6'
-      const output = await registry.assetData(1)
-      output.should.be.equal(data)
+      const output = await registry.assetData(0)
+      output.should.be.equal(CONTENT_DATA)
     })
     it('throws is not valid id', async () => {
       return Promise.all([
