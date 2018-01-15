@@ -41,8 +41,8 @@ contract('StandardAssetRegistry', accounts => {
 
   beforeEach(async function() {
     registry = await StandardAssetRegistry.new(creationParams)
-    await registry.create(0, user, sentByCreator)
-    await registry.create(1, user, sentByCreator)
+    await registry.generate(0, user, sentByCreator)
+    await registry.generate(1, user, sentByCreator)
   })
 
   describe('name', () => {
@@ -67,7 +67,7 @@ contract('StandardAssetRegistry', accounts => {
     it('has a total supply that increases after creating a new registry', async () => {
       let totalSupply = await registry.totalSupply()
       totalSupply.should.be.bignumber.equal(2)
-      await registry.create(-123, 3423, anotherUser, sentByCreator)
+      await registry.generate(100, anotherUser, sentByCreator)
       totalSupply = await registry.totalSupply()
       totalSupply.should.be.bignumber.equal(3)
     })
