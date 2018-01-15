@@ -73,4 +73,97 @@ contract('StandardAssetRegistry', accounts => {
     })
   })
 
+  describe('exists', () => {
+    it('ensures the asset exists after created', async () => {
+      const output = await registry.exists(1)
+      output.should.be.true      
+    })
+    it('ensures does return an assets if it does not exist', async () => {
+      const output = await registry.exists(100)
+      output.should.be.false
+    })
+    it('throws is not valid id', async () => {
+      try {
+        const output = await registry.exists(true)
+        assert.fail('should throw here')
+      } catch (error) {
+        assertRevert(error)
+      }
+    })
+    it('throws is not id is provided', async () => {
+      try {
+        const output = await registry.exists()
+        assert.fail('should throw here')
+      } catch (error) {
+        assertRevert(error)
+      }
+    })
+  })
+
+  describe('holderOf', () => {
+    it('should match the holder of the asset', async () => {
+      const one = '0xdf08f82de32b8d460adbe8d72043e3a7e25a3b39'
+      const two = '0x0000000000000000000000000000000000000000'
+      const outputOne = await registry.holderOf(1)
+      const outputTwo = await registry.holderOf(2)
+      outputOne.should.be.equal(one)
+      outputTwo.should.be.equal(two)
+    })
+    it('throws is not valid id', async () => {
+      try {
+        const output = await registry.holderOf(true)
+        assert.fail('should throw here')
+      } catch (error) {
+        assertRevert(error)
+      }
+    })
+    it('throws is not id is provided', async () => {
+      try {
+        const output = await registry.holderOf()
+        assert.fail('should throw here')
+      } catch (error) {
+        assertRevert(error)
+      }
+    })
+  })
+
+  describe('assetData', async () => {
+    it ('should returns the proper data', async () => {
+      const data = '0x6704fbfcd5ef766b287262fa2281c105d57246a6'
+      const output = await registry.assetData(1)
+      output.should.be.equal(data)
+    })
+    it('throws is not valid id', async () => {
+      try {
+        const output = await registry.assetData(true)
+        assert.fail('should throw here')
+      } catch (error) {
+        assertRevert(error)
+      }
+    })
+    it('throws is not id is provided', async () => {
+      try {
+        const output = await registry.assetData()
+        assert.fail('should throw here')
+      } catch (error) {
+        assertRevert(error)
+      }
+    })
+
+  })
+
+
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
