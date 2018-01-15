@@ -29,6 +29,7 @@ contract('StandardAssetRegistry', accounts => {
   let registry = null
   const _name = 'Test'
   const _symbol = 'TEST'
+  const _description = 'Loremp ipsum'
   const _firstAssetlId = 1
   const _secondParcelId = 2
   const _unknownParcelId = 3
@@ -45,31 +46,40 @@ contract('StandardAssetRegistry', accounts => {
     await registry.generate(1, user, sentByCreator)
   })
 
-  describe('name', () => {
-    it('has a name', async () => {
-      const name = await registry.name()
-      name.should.be.equal(_name)
+  describe('Global Setters', () => {
+    describe('name', () => {
+      it('has a name', async () => {
+        const name = await registry.name()
+        name.should.be.equal(_name)
+      })
     })
-  })
 
-  describe('symbol', () => {
-    it('has a symbol', async () => {
-      const symbol = await registry.symbol()
-      symbol.should.be.equal(_symbol)
+    describe('symbol', () => {
+      it('has a symbol', async () => {
+        const symbol = await registry.symbol()
+        symbol.should.be.equal(_symbol)
+      })
     })
-  })
 
-  describe('totalSupply', () => {
-    it('has a total supply equivalent to the inital supply', async () => {
-      const totalSupply = await registry.totalSupply()
-      totalSupply.should.be.bignumber.equal(2)
+    describe('description', () => {
+      it('has a description', async () => {
+        const description = await registry.description()
+        description.should.be.equal(_description)
+      })
     })
-    it('has a total supply that increases after creating a new registry', async () => {
-      let totalSupply = await registry.totalSupply()
-      totalSupply.should.be.bignumber.equal(2)
-      await registry.generate(100, anotherUser, sentByCreator)
-      totalSupply = await registry.totalSupply()
-      totalSupply.should.be.bignumber.equal(3)
+
+    describe('totalSupply', () => {
+      it('has a total supply equivalent to the inital supply', async () => {
+        const totalSupply = await registry.totalSupply()
+        totalSupply.should.be.bignumber.equal(2)
+      })
+      it('has a total supply that increases after creating a new registry', async () => {
+        let totalSupply = await registry.totalSupply()
+        totalSupply.should.be.bignumber.equal(2)
+        await registry.generate(100, anotherUser, sentByCreator)
+        totalSupply = await registry.totalSupply()
+        totalSupply.should.be.bignumber.equal(3)
+      })
     })
   })
 
