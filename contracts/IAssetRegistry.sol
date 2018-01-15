@@ -39,9 +39,7 @@ interface IAssetRegistry {
   /**
    * Supply-altering operations
    */
-  function generate(uint256 assetId) public;
   function generate(uint256 assetId, string data) public;
-
   function destroy(uint256 assetId) public;
 
   /**
