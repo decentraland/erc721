@@ -24,6 +24,8 @@ require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should()
 
+const expect = require('chai').expect;
+
 contract('StandardAssetRegistry', accounts => {
   const [creator, user, anotherUser, operator, mallory] = accounts
   let registry = null
@@ -83,20 +85,14 @@ contract('StandardAssetRegistry', accounts => {
       output.should.be.false
     })
     it('throws is not valid id', async () => {
-      try {
-        const output = await registry.exists(true)
-        assert.fail('should throw here')
-      } catch (error) {
-        assertRevert(error)
-      }
+      return Promise.all([
+        registry.exists(true).should.be.rejected
+      ])
     })
     it('throws is not id is provided', async () => {
-      try {
-        const output = await registry.exists()
-        assert.fail('should throw here')
-      } catch (error) {
-        assertRevert(error)
-      }
+      return Promise.all([
+        registry.exists().should.be.rejected
+      ])
     })
   })
 
@@ -110,20 +106,14 @@ contract('StandardAssetRegistry', accounts => {
       outputTwo.should.be.equal(two)
     })
     it('throws is not valid id', async () => {
-      try {
-        const output = await registry.holderOf(true)
-        assert.fail('should throw here')
-      } catch (error) {
-        assertRevert(error)
-      }
+      return Promise.all([
+        registry.holderOf(true).should.be.rejected
+      ])
     })
     it('throws is not id is provided', async () => {
-      try {
-        const output = await registry.holderOf()
-        assert.fail('should throw here')
-      } catch (error) {
-        assertRevert(error)
-      }
+      return Promise.all([
+        registry.holderOf().should.be.rejected
+      ])
     })
   })
 
@@ -134,36 +124,17 @@ contract('StandardAssetRegistry', accounts => {
       output.should.be.equal(data)
     })
     it('throws is not valid id', async () => {
-      try {
-        const output = await registry.assetData(true)
-        assert.fail('should throw here')
-      } catch (error) {
-        assertRevert(error)
-      }
+      return Promise.all([
+        registry.assetData(true).should.be.rejected
+      ])
     })
     it('throws is not id is provided', async () => {
-      try {
-        const output = await registry.assetData()
-        assert.fail('should throw here')
-      } catch (error) {
-        assertRevert(error)
-      }
+      return Promise.all([
+        registry.assetData().should.be.rejected
+      ])
     })
 
   })
 
 
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
