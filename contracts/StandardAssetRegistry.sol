@@ -56,6 +56,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
   }
 
   function assetByIndex(address holder, uint256 index) public view returns (uint256) {
+    require(index < _assetsOf[holder].length);
     return _assetsOf[holder][index];
   }
 
