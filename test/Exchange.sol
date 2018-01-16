@@ -18,10 +18,10 @@ contract Exchange {
     }
 
     function buy(uint256 assetId) payable public {
-        require(msg.value > _orders[assetId]);
+        require(msg.value >= _orders[assetId]);
         require(_orders[assetId] > 0);
         nonFungible.holderOf(assetId).transfer(_orders[assetId]);
-        nonFungible.transfer(msg.sender, assetId);
+        nonFungible.operatorTransfer(msg.sender, assetId, '', '');
     }
 }
 

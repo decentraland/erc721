@@ -14,7 +14,7 @@ require('chai')
 
 const expect = require('chai').expect;
 
-contract('StandardAssetRegistry', accounts => {
+contract('Exchange', accounts => {
   const [creator, user, anotherUser, operator, mallory] = accounts
   let registry = null
   let exchange = null
@@ -34,17 +34,21 @@ contract('StandardAssetRegistry', accounts => {
     await registry.generate(0, CONTENT_DATA, sentByCreator)
     await registry.generate(1, CONTENT_DATA, sentByCreator)
   })
-  /**
-   * TESTS:
-   * - Happy path user sells asset, another buy it
-   * - Try to transfer an asset without permissions
-   * - Try to transfer an non existing asset
-   * - Try to transfer to the same user the asset
-   * -
-   */
-  describe('test', () => {
-    it('tests', async () => {
 
+  describe('Exchange a non existing asset', () => {
+    it('tries to sell a non existing asset', async () => {
+      await assertRevert(exchange.sell(2, 200, sentByCreator))
+    })
+    it('tries to buy a non existing asset', async () => {
+      await assertRevert(exchange.buy(2))
+    })
+  })
+
+  describe('Exchange asset to the same user', () => {
+    xit('tries to transfer an asset to himself', async () => {
+      await registry.authorizeOperator(exchange.address, true)
+      await exchange.sell(1, 1, sentByCreator)
+      await assertRevert(exchange.buy(1, { ...sentByCreator, value: 1 }))
     })
   })
 })
