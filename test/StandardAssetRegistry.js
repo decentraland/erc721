@@ -20,6 +20,13 @@ function checkApproveLog(log, parcelId, from, to) {
   log.args.beneficiary.should.be.equal(to)
 }
 
+function checkAuthorizationLog(log, operator, holder, authorized) {
+  log.event.should.be.eq('AuthorizeOperator')
+  log.args.operator.should.be.bignumber.equal(operator)
+  log.args.holder.should.be.equal(holder)
+  log.args.authorized.should.be.equal(authorized)
+}
+
 function checkUpdateLog(log, assetId, holder, operator) {
   log.event.should.be.eq('Update')
   log.args.assetId.should.be.bignumber.equal(assetId)
@@ -98,7 +105,7 @@ contract('StandardAssetRegistry', accounts => {
   describe('exists', () => {
     it('ensures the asset exists after created', async () => {
       const output = await registry.exists(1)
-      output.should.be.true      
+      output.should.be.true
     })
     it('ensures does return an assets if it does not exist', async () => {
       const output = await registry.exists(100)
@@ -118,8 +125,8 @@ contract('StandardAssetRegistry', accounts => {
 
   describe('holderOf', () => {
     it('should match the holder of the asset', async () => {
-      const one = '0xdf08f82de32b8d460adbe8d72043e3a7e25a3b39'
-      const two = '0x0000000000000000000000000000000000000000'
+      const one = creator
+      const two = NONE
       const outputOne = await registry.holderOf(1)
       const outputTwo = await registry.holderOf(2)
       outputOne.should.be.equal(one)
@@ -235,6 +242,57 @@ contract('StandardAssetRegistry', accounts => {
     })
   })
 
+  describe('Authorizations Getters', () => {
+    it('is authorized', async () => {
+      const authorized = true
+      await registry.authorizeOperator(user, authorized)
+      const isAuthorized = await registry.isOperatorAuthorizedFor(user, creator)
+      isAuthorized.should.equal(authorized)
+    })
+
+    it('emits AuthorizeOperator events', async () => {
+      const authorized = true
+      const { logs } = await registry.authorizeOperator(user, authorized)
+      logs.length.should.be.equal(1)
+      checkAuthorizationLog(logs[0], user, creator, authorized)
+    })
+
+    it('is not authorized after setting the operator as false', async () => {
+      await registry.authorizeOperator(user, true)
+      await registry.authorizeOperator(user, false)
+      const isAuthorized = await registry.isOperatorAuthorizedFor(user, creator)
+      isAuthorized.should.equal(false)
+    })
+
+    it('is not authorized even if the holder is not set as operator', async () => {
+      const isAuthorized = await registry.isOperatorAuthorizedFor(creator, creator)
+      isAuthorized.should.equal(false)
+    })
+
+    it('is not authorized', async () => {
+      const isAuthorized = await registry.isOperatorAuthorizedFor(creator, user)
+      isAuthorized.should.equal(false)
+    })
+
+    it('reverts when removing a un-existing operator', async () => {
+      const authorized = false
+      await assertRevert(registry.authorizeOperator(user, authorized))
+    })
+
+    it('reverts when trying to add an existing operator', async () => {
+      const authorized = true
+      await registry.authorizeOperator(user, authorized)
+      await assertRevert(registry.authorizeOperator(user, authorized))
+    })
+
+    it('reverts when removing a previous removed operator', async () => {
+      const authorized = true
+      await registry.authorizeOperator(user, authorized)
+      await registry.authorizeOperator(user, !authorized)
+      await assertRevert(registry.authorizeOperator(user, !authorized))
+    })
+  })
+
   describe('update', () => {
     it('updates the asset with new data if the sender is the holder', async () => {
       await registry.update(0, 'new data')
@@ -271,5 +329,4 @@ contract('StandardAssetRegistry', accounts => {
       checkUpdateLog(logs[0], 0, creator, user)
     })
   })
-
 })
