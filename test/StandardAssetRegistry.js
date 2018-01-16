@@ -25,6 +25,8 @@ require('chai')
   .use(require('chai-bignumber')(BigNumber))
   .should()
 
+const expect = require('chai').expect;
+
 contract('StandardAssetRegistry', accounts => {
   const [creator, user, anotherUser, operator, mallory] = accounts
   let registry = null
@@ -39,11 +41,12 @@ contract('StandardAssetRegistry', accounts => {
     gasPrice: 21e9,
     from: creator
   }
+  const CONTENT_DATA = 'test data'
 
   beforeEach(async function() {
     registry = await StandardAssetRegistry.new(creationParams)
-    await registry.generate(0, user, sentByCreator)
-    await registry.generate(1, user, sentByCreator)
+    await registry.generate(0, CONTENT_DATA, sentByCreator)
+    await registry.generate(1, CONTENT_DATA, sentByCreator)
   })
 
   describe('name', () => {
@@ -72,6 +75,66 @@ contract('StandardAssetRegistry', accounts => {
       totalSupply = await registry.totalSupply()
       totalSupply.should.be.bignumber.equal(3)
     })
+  })
+
+  describe('exists', () => {
+    it('ensures the asset exists after created', async () => {
+      const output = await registry.exists(1)
+      output.should.be.true      
+    })
+    it('ensures does return an assets if it does not exist', async () => {
+      const output = await registry.exists(100)
+      output.should.be.false
+    })
+    it('throws is not valid id', async () => {
+      return Promise.all([
+        registry.exists(true).should.be.rejected
+      ])
+    })
+    it('throws is not id is provided', async () => {
+      return Promise.all([
+        registry.exists().should.be.rejected
+      ])
+    })
+  })
+
+  describe('holderOf', () => {
+    it('should match the holder of the asset', async () => {
+      const one = '0xdf08f82de32b8d460adbe8d72043e3a7e25a3b39'
+      const two = '0x0000000000000000000000000000000000000000'
+      const outputOne = await registry.holderOf(1)
+      const outputTwo = await registry.holderOf(2)
+      outputOne.should.be.equal(one)
+      outputTwo.should.be.equal(two)
+    })
+    it('throws is not valid id', async () => {
+      return Promise.all([
+        registry.holderOf(true).should.be.rejected
+      ])
+    })
+    it('throws is not id is provided', async () => {
+      return Promise.all([
+        registry.holderOf().should.be.rejected
+      ])
+    })
+  })
+
+  describe('assetData', async () => {
+    it ('should returns the proper data', async () => {
+      const output = await registry.assetData(0)
+      output.should.be.equal(CONTENT_DATA)
+    })
+    it('throws is not valid id', async () => {
+      return Promise.all([
+        registry.assetData(true).should.be.rejected
+      ])
+    })
+    it('throws is not id is provided', async () => {
+      return Promise.all([
+        registry.assetData().should.be.rejected
+      ])
+    })
+
   })
 
   describe('assetCount', () => {
