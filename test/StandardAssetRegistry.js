@@ -20,6 +20,36 @@ function checkApproveLog(log, parcelId, from, to) {
   log.args.beneficiary.should.be.equal(to)
 }
 
+function checkAuthorizationLog(log, operator, holder, authorized) {
+  log.event.should.be.eq('AuthorizeOperator')
+  log.args.operator.should.be.bignumber.equal(operator)
+  log.args.holder.should.be.equal(holder)
+  log.args.authorized.should.be.equal(authorized)
+}
+
+function checkUpdateLog(log, assetId, holder, operator) {
+  log.event.should.be.eq('Update')
+  log.args.assetId.should.be.bignumber.equal(assetId)
+  log.args.holder.should.be.equal(holder)
+  log.args.operator.should.be.equal(operator)
+}
+
+function checkCreateLog(log, holder, assetId, operator, data) {
+  log.event.should.be.eq('Create')
+  log.args.holder.should.be.equal(holder)
+  log.args.assetId.should.be.bignumber.equal(assetId)
+  log.args.operator.should.be.equal(operator)
+  log.args.data.should.be.equal(data)
+}
+
+function checkDestroyLog(log, holder, assetId, operator) {
+  log.event.should.be.eq('Destroy')
+  log.args.holder.should.be.equal(holder)
+  log.args.assetId.should.be.bignumber.equal(assetId)
+  log.args.operator.should.be.equal(operator)
+}
+
+
 require('chai')
   .use(require('chai-as-promised'))
   .use(require('chai-bignumber')(BigNumber))
@@ -32,11 +62,13 @@ contract('StandardAssetRegistry', accounts => {
   let registry = null
   const _name = 'Test'
   const _symbol = 'TEST'
-  const _description = 'Loremp ipsum'
+  const _description = 'lorem ipsum'
   const _firstAssetlId = 1
   const _secondParcelId = 2
   const _unknownParcelId = 3
+  const alternativeAsset = { id: 2, data: 'data2' }
   const sentByCreator = { from: creator }
+  const sentByUser = { from: user }  
   const creationParams = {
     gas: 4e6,
     gasPrice: 21e9,
@@ -90,18 +122,18 @@ contract('StandardAssetRegistry', accounts => {
   describe('exists', () => {
     it('ensures the asset exists after created', async () => {
       const output = await registry.exists(1)
-      output.should.be.true      
+      output.should.be.true
     })
     it('ensures does return an assets if it does not exist', async () => {
       const output = await registry.exists(100)
       output.should.be.false
     })
-    it('throws is not valid id', async () => {
+    it('throws if not valid id', async () => {
       return Promise.all([
         registry.exists(true).should.be.rejected
       ])
     })
-    it('throws is not id is provided', async () => {
+    it('throws if id is not provided', async () => {
       return Promise.all([
         registry.exists().should.be.rejected
       ])
@@ -110,19 +142,19 @@ contract('StandardAssetRegistry', accounts => {
 
   describe('holderOf', () => {
     it('should match the holder of the asset', async () => {
-      const one = '0xdf08f82de32b8d460adbe8d72043e3a7e25a3b39'
-      const two = '0x0000000000000000000000000000000000000000'
+      const one = creator
+      const two = NONE
       const outputOne = await registry.holderOf(1)
       const outputTwo = await registry.holderOf(2)
       outputOne.should.be.equal(one)
       outputTwo.should.be.equal(two)
     })
-    it('throws is not valid id', async () => {
+    it('throws if not valid id', async () => {
       return Promise.all([
         registry.holderOf(true).should.be.rejected
       ])
     })
-    it('throws is not id is provided', async () => {
+    it('throws if id is not provided', async () => {
       return Promise.all([
         registry.holderOf().should.be.rejected
       ])
@@ -134,12 +166,12 @@ contract('StandardAssetRegistry', accounts => {
       const output = await registry.assetData(0)
       output.should.be.equal(CONTENT_DATA)
     })
-    it('throws is not valid id', async () => {
+    it('throws if not valid id', async () => {
       return Promise.all([
         registry.assetData(true).should.be.rejected
       ])
     })
-    it('throws is not id is provided', async () => {
+    it('throws if id is not provided', async () => {
       return Promise.all([
         registry.assetData().should.be.rejected
       ])
@@ -210,23 +242,6 @@ contract('StandardAssetRegistry', accounts => {
     })
   })
 
-  describe('isContract', () => {
-    it('returns true for a valid contract address', async () => {
-      const isContract = await registry.isContractProxy(registry.address)
-      isContract.should.equal(true)
-    })
-
-    it('returns false for a user address', async () => {
-      const isContract = await registry.isContractProxy(user)
-      isContract.should.equal(false)
-    })
-
-    it('returns false for an inexistant address', async () => {
-      const isContract = await registry.isContractProxy(NONE)
-      isContract.should.equal(false)
-    })
-  })
-
   describe('Transacions Related', () => {
     it('ensures the assets if passed to another owner after transfer', async () => {
       const CONTENT_DATA = 'ramdom data'
@@ -277,4 +292,204 @@ contract('StandardAssetRegistry', accounts => {
     })
   })
 
+  describe('generate', () => {
+    it('generates an asset with empty data', async () => {
+      await registry.generate(alternativeAsset.id, '', sentByUser)
+      const data = await registry.assetData(alternativeAsset.id)
+      data.should.be.empty
+    })
+
+    it('generates an asset with data', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      const data = await registry.assetData(alternativeAsset.id)
+      data.should.be.equal(alternativeAsset.data)
+    })
+
+    it('emits a Create event', async () => {
+      const { logs } = await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      logs.length.should.be.equal(1)
+      checkCreateLog(logs[0], user, alternativeAsset.id, user, alternativeAsset.data)
+    })
+
+    it('generates multiple assets', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      await registry.generate(3, 'data3', sentByUser)
+      await registry.generate(4, 'data4', sentByUser)
+      const assets = await registry.assetsOf(user)
+      const assetsData = await Promise.all(assets.map(asset => registry.assetData(asset)))
+      assetsData.should.have.all.members([alternativeAsset.data, 'data3', 'data4'])
+    })
+
+    it('fails if the assetId is already in use', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      await assertRevert(registry.generate(alternativeAsset.id, 'anotherData', sentByUser))
+    })
+
+    xit('generates an asset to the default account', async () => {
+      await registry.generate(alternativeAsset.id)
+      const assetOwner = await registry.holderOf(alternativeAsset.id)
+      assetOwner.should.be.equal(creator)
+    })
+
+    xit('generates an asset to a beneficiary account', async () => {
+      await registry.generate(alternativeAsset.id, anotherUser, alternativeAsset.data)
+      const assetOwner = await registry.holderOf(alternativeAsset.id)
+      assetOwner.should.be.equal(anotherUser)
+    })
+  })
+
+  describe('destroy', () => {
+    it('destroys an asset created', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByCreator)
+      let exist = await registry.exists(alternativeAsset.id)
+      exist.should.be.true
+      await registry.destroy(alternativeAsset.id)
+      exist = await registry.exists(alternativeAsset.id)
+      exist.should.be.false
+    })
+
+    it('emits a Destroy event', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByCreator)
+      const {logs} = await registry.destroy(alternativeAsset.id)
+      logs.length.should.be.equal(1)
+      checkDestroyLog(logs[0], creator, alternativeAsset.id, creator)
+    })
+
+    it('tries to get data from asset already destroyed', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByCreator)
+      await registry.destroy(alternativeAsset.id)
+      await assertRevert(registry.assetData(alternativeAsset.id))
+    })
+
+    it('tries to destroy a not-existed asset', async () => {
+      await assertRevert(registry.destroy(alternativeAsset.id))
+    })
+
+    it('tries to destroy a not-owned asset', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      await assertRevert(registry.destroy(alternativeAsset.id))
+    })
+
+    it('destroys an asset by operator', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      let exist = await registry.exists(alternativeAsset.id)
+      exist.should.be.true
+      await registry.authorizeOperator(anotherUser, true, sentByUser)
+      await registry.destroy(alternativeAsset.id, {from: anotherUser})
+      exist = await registry.exists(alternativeAsset.id)
+      exist.should.be.false
+    })
+
+    it('fails if operator is not allowed to destroy', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      await registry.authorizeOperator(anotherUser, true, sentByUser)
+      await registry.authorizeOperator(anotherUser, false, sentByUser)
+      await assertRevert(registry.destroy(alternativeAsset.id, {from: anotherUser}))
+    })
+  })
+
+  describe('isContract', () => {
+    it('returns true for a valid contract address', async () => {
+      const isContract = await registry.isContractProxy(registry.address)
+      isContract.should.equal(true)
+    })
+
+    it('returns false for a user address', async () => {
+      const isContract = await registry.isContractProxy(user)
+      isContract.should.equal(false)
+    })
+
+    it('returns false for an inexistant address', async () => {
+      const isContract = await registry.isContractProxy(NONE)
+      isContract.should.equal(false)
+    })
+  })
+
+  describe('Authorizations Getters', () => {
+    it('is authorized', async () => {
+      const authorized = true
+      await registry.authorizeOperator(user, authorized)
+      const isAuthorized = await registry.isOperatorAuthorizedFor(user, creator)
+      isAuthorized.should.equal(authorized)
+    })
+
+    it('emits AuthorizeOperator events', async () => {
+      const authorized = true
+      const { logs } = await registry.authorizeOperator(user, authorized)
+      logs.length.should.be.equal(1)
+      checkAuthorizationLog(logs[0], user, creator, authorized)
+    })
+
+    it('is not authorized after setting the operator as false', async () => {
+      await registry.authorizeOperator(user, true)
+      await registry.authorizeOperator(user, false)
+      const isAuthorized = await registry.isOperatorAuthorizedFor(user, creator)
+      isAuthorized.should.equal(false)
+    })
+
+    it('is not authorized even if the holder is not set as operator', async () => {
+      const isAuthorized = await registry.isOperatorAuthorizedFor(creator, creator)
+      isAuthorized.should.equal(false)
+    })
+
+    it('is not authorized', async () => {
+      const isAuthorized = await registry.isOperatorAuthorizedFor(creator, user)
+      isAuthorized.should.equal(false)
+    })
+
+    it('reverts when removing a un-existing operator', async () => {
+      const authorized = false
+      await assertRevert(registry.authorizeOperator(user, authorized))
+    })
+
+    it('reverts when trying to add an existing operator', async () => {
+      const authorized = true
+      await registry.authorizeOperator(user, authorized)
+      await assertRevert(registry.authorizeOperator(user, authorized))
+    })
+
+    it('reverts when removing a previous removed operator', async () => {
+      const authorized = true
+      await registry.authorizeOperator(user, authorized)
+      await registry.authorizeOperator(user, !authorized)
+      await assertRevert(registry.authorizeOperator(user, !authorized))
+    })
+  })
+
+  describe('update', () => {
+    it('updates the asset with new data if the sender is the holder', async () => {
+      await registry.update(0, 'new data')
+      const data = await registry.assetData(0)
+      data.should.equal('new data')
+    })
+
+    it('updates the asset with new data for a different operator', async () => {
+      await registry.authorizeOperator(user, true)
+      const {logs} = await registry.update(0, 'new data', sentByUser)
+      const data = await registry.assetData(0)
+      data.should.equal('new data')
+    })
+
+    it('reverts if the sender is not authorized', async () => {
+      await registry.generate(3, CONTENT_DATA, sentByUser)
+      await assertRevert(registry.update(3, 'new data'))
+    })
+
+    it('reverts for an inexistent asset', async () => {
+      await assertRevert(registry.update(10, 'new data'))
+    })
+
+    it('emits an Update event', async () => {
+      const {logs} = await registry.update(0, 'new data')
+      logs.length.should.be.equal(1)
+      checkUpdateLog(logs[0], 0, creator, creator)
+    })
+
+    it('emits an Update event for a different operator', async () => {
+      await registry.authorizeOperator(user, true)
+      const {logs} = await registry.update(0, 'new data', sentByUser)
+      logs.length.should.be.equal(1)
+      checkUpdateLog(logs[0], 0, creator, user)
+    })
+  })
 })
