@@ -7,7 +7,7 @@ contract StandardAssetRegistryTest is StandardAssetRegistry {
   function StandardAssetRegistryTest () public {
     _name = "Test";
     _symbol = "TEST";
-    _description = "Loremp ipsum";
+    _description = "lorem ipsum";
   }
 
   function isContractProxy(address addr) public view returns (bool) {
