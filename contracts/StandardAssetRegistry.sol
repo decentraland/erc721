@@ -198,7 +198,13 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
     _;
   }
 
+  modifier isDestinataryDefined(address destinatary) {
+    require(destinatary != 0);
+    _;
+  }
+
   function transfer(address to, uint256 assetId)
+    isDestinataryDefined(to)
     onlyHolder(assetId)
     public
   {
@@ -206,6 +212,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
   }
 
   function transfer(address to, uint256 assetId, bytes _userData)
+    isDestinataryDefined(to)
     onlyHolder(assetId)
     public
   {
@@ -215,6 +222,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
   function operatorTransfer(
     address to, uint256 assetId, bytes userData, bytes operatorData
   )
+    isDestinataryDefined(to)
     onlyOperator(assetId)
     public
   {
