@@ -1,4 +1,4 @@
-import assertRevert, {AssertError} from './helpers/assertRevert'
+import assertRevert, {assertError} from './helpers/assertRevert'
 
 const BigNumber = web3.BigNumber
 
@@ -263,17 +263,13 @@ contract('StandardAssetRegistry', accounts => {
       newOwner.should.be.equal(user)     
     })
     it('throws if no arguments are sent', async () => {
-      AssertError(registry.transfer())
+      assertError(registry.transfer())
     })
     it('throws if asset is missing', async () => {
-      AssertError(registry.transfer(anotherUser))
-    })
-    it('sends to itself should throw', async () => {
-      await registry.generate(6, CONTENT_DATA, { from: creator })
-      await assertRevert( registry.transfer(creator, 6) )
+      assertError(registry.transfer(anotherUser))
     })
     it('throws if asset is to transfer is missing', async () => {
-      AssertError(registry.transfer(null, 1))
+      assertError(registry.transfer(null, 1))
     })
     it('throw is operator sends to itself', async () => {
       await registry.generate(6, CONTENT_DATA, { from: user })
@@ -283,17 +279,13 @@ contract('StandardAssetRegistry', accounts => {
       await registry.generate(7, CONTENT_DATA, { from: creator })
       await registry.operatorTransfer(anotherUser, 7, 0, 0)
     })
-    it('throw is operator sends to itself', async () => {
-      await registry.generate(8, CONTENT_DATA, { from: creator })
-      await assertRevert( registry.operatorTransfer(creator, 8, 0, 0) )
-    })
     it('throw if receiver is null', async () => {
       await registry.generate(8, CONTENT_DATA, { from: creator })
       await assertRevert( registry.operatorTransfer(null, 8, 0, 0) )
     })
     it('throw if receiver if missing argurments', async () => {
       await registry.generate(9, CONTENT_DATA, { from: creator })
-      AssertError( registry.operatorTransfer(anotherUser, 9) )
+      assertError( registry.operatorTransfer(anotherUser, 9) )
     })
   })
 
