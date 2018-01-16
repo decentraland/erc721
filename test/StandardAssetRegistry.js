@@ -84,7 +84,7 @@ contract('StandardAssetRegistry', accounts => {
   }
   const CONTENT_DATA = 'test data'
 
-  beforeEach(async function() {
+  beforeEach(async () => {
     registry = await StandardAssetRegistry.new(creationParams)
     EIP820 = await getEIP820(creator)
     await registry.generate(0, creator, CONTENT_DATA, sentByCreator)
