@@ -44,6 +44,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
   }
 
   function assetData(uint256 assetId) public view returns (string) {
+    require(_holderOf[assetId] != 0);
     return _assetData[assetId];
   }
 
