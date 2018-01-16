@@ -150,6 +150,15 @@ contract('StandardAssetRegistry', accounts => {
       const data = await registry.assetData(alternativeAsset.id)
       data.should.be.equal(alternativeAsset.data)
     })
+    it('emits a Create event', async () => {
+      const { logs } = await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      logs.length.should.be.equal(1);
+      logs[0].event.should.be.eq('Create')
+      logs[0].args.holder.should.be.equal(user)
+      logs[0].args.assetId.should.be.bignumber.equal(alternativeAsset.id)
+      logs[0].args.operator.should.be.equal(user)
+      logs[0].args.data.should.be.equal(alternativeAsset.data)
+    })
     it('generates multiple assets', async () => {
       await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
       await registry.generate(3, 'data3', sentByUser)
@@ -183,10 +192,22 @@ contract('StandardAssetRegistry', accounts => {
       exist = await registry.exists(alternativeAsset.id)
       exist.should.be.false
     })
+    it('emits a Destroy event', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByCreator)
+      const { logs } = await registry.destroy(alternativeAsset.id)
+      logs.length.should.be.equal(1);
+      logs[0].event.should.be.eq('Destroy')
+      logs[0].args.holder.should.be.equal(creator)
+      logs[0].args.assetId.should.be.bignumber.equal(alternativeAsset.id)
+      logs[0].args.operator.should.be.equal(creator)
+    })
     it('tries to get data from asset already destroyed', async () => {
       await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByCreator)
       await registry.destroy(alternativeAsset.id)
       await assertRevert(registry.assetData(alternativeAsset.id))
+    })
+    it('tries to destroy a not-existed asset', async () => {
+      await assertRevert(registry.destroy(alternativeAsset.id))
     })
     it('tries to destroy a not-owned asset', async () => {
       await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
@@ -197,7 +218,7 @@ contract('StandardAssetRegistry', accounts => {
       let exist = await registry.exists(alternativeAsset.id)
       exist.should.be.true
       await registry.authorizeOperator(anotherUser, true, sentByUser)
-      await registry.destroy(alternativeAsset.id, { from: anotherUser})
+      await registry.destroy(alternativeAsset.id, { from: anotherUser })
       exist = await registry.exists(alternativeAsset.id)
       exist.should.be.false
     })
@@ -205,7 +226,7 @@ contract('StandardAssetRegistry', accounts => {
       await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
       await registry.authorizeOperator(anotherUser, true, sentByUser)
       await registry.authorizeOperator(anotherUser, false, sentByUser)
-      await assertRevert(registry.destroy(alternativeAsset.id, { from: anotherUser}))
+      await assertRevert(registry.destroy(alternativeAsset.id, { from: anotherUser }))
     })
   })
 
