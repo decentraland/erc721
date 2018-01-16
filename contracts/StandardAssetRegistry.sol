@@ -229,6 +229,8 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
   function operatorTransfer(
     address to, uint256 assetId, bytes userData, bytes operatorData
   )
+    senderIsDefined(to)
+    notItself(to)
     onlyOperator(assetId)
     public
   {
