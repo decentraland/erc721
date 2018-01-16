@@ -1,4 +1,4 @@
-import assertRevert from './helpers/assertRevert'
+import assertRevert, {assertError} from './helpers/assertRevert'
 
 const BigNumber = web3.BigNumber
 
@@ -239,6 +239,53 @@ contract('StandardAssetRegistry', accounts => {
       const assets = await registry.assetsOf(NONE)
       const convertedAssets = assets.map(big => big.toString())
       convertedAssets.should.have.all.members([])
+    })
+  })
+
+  describe('Transactions Related', () => {
+    it('ensures the asset is passed to another owner after transfer', async () => {
+      await registry.generate(3, CONTENT_DATA, { from: creator })
+      await registry.transfer(anotherUser, 3)
+      const newOwner = await registry.holderOf(3)
+      newOwner.should.be.equal(anotherUser)
+    })
+    it('ensures the sender owns the asset that is trying to send', async () => {
+      await registry.generate(4, CONTENT_DATA, { from: anotherUser })
+      await assertRevert( registry.transfer(operator, 4) )
+    })
+    it('after receiving an asset, the receiver can\'t transfer the sender\'s other assets', async () => {
+      await registry.generate(5, CONTENT_DATA, { from: creator })
+      await registry.transfer(user, 5)
+      await assertRevert( registry.transfer(anotherUser, 5) )
+      await assertRevert( registry.transfer(operator, 5) )
+      await assertRevert( registry.transfer(mallory, 5) )
+      const newOwner = await registry.holderOf(5)
+      newOwner.should.be.equal(user)     
+    })
+    it('throws if no arguments are sent', async () => {
+      assertError(registry.transfer())
+    })
+    it('throws if asset is missing', async () => {
+      assertError(registry.transfer(anotherUser))
+    })
+    it('throws if asset is to transfer is missing', async () => {
+      assertError(registry.transfer(null, 1))
+    })
+    it('throw is operator sends to itself', async () => {
+      await registry.generate(6, CONTENT_DATA, { from: user })
+      await assertRevert( registry.operatorTransfer(anotherUser, 6, 0, 0) )
+    })
+    it('works only if operator', async () => {
+      await registry.generate(7, CONTENT_DATA, { from: creator })
+      await registry.operatorTransfer(anotherUser, 7, 0, 0)
+    })
+    it('throw if receiver is null', async () => {
+      await registry.generate(8, CONTENT_DATA, { from: creator })
+      await assertRevert( registry.operatorTransfer(null, 8, 0, 0) )
+    })
+    it('throw if receiver if missing argurments', async () => {
+      await registry.generate(9, CONTENT_DATA, { from: creator })
+      assertError( registry.operatorTransfer(anotherUser, 9) )
     })
   })
 
