@@ -128,12 +128,12 @@ contract('StandardAssetRegistry', accounts => {
       const output = await registry.exists(100)
       output.should.be.false
     })
-    it('throws is not valid id', async () => {
+    it('throws if not valid id', async () => {
       return Promise.all([
         registry.exists(true).should.be.rejected
       ])
     })
-    it('throws is not id is provided', async () => {
+    it('throws if id is not provided', async () => {
       return Promise.all([
         registry.exists().should.be.rejected
       ])
@@ -149,12 +149,12 @@ contract('StandardAssetRegistry', accounts => {
       outputOne.should.be.equal(one)
       outputTwo.should.be.equal(two)
     })
-    it('throws is not valid id', async () => {
+    it('throws if not valid id', async () => {
       return Promise.all([
         registry.holderOf(true).should.be.rejected
       ])
     })
-    it('throws is not id is provided', async () => {
+    it('throws if id is not provided', async () => {
       return Promise.all([
         registry.holderOf().should.be.rejected
       ])
@@ -166,12 +166,12 @@ contract('StandardAssetRegistry', accounts => {
       const output = await registry.assetData(0)
       output.should.be.equal(CONTENT_DATA)
     })
-    it('throws is not valid id', async () => {
+    it('throws if not valid id', async () => {
       return Promise.all([
         registry.assetData(true).should.be.rejected
       ])
     })
-    it('throws is not id is provided', async () => {
+    it('throws if id is not provided', async () => {
       return Promise.all([
         registry.assetData().should.be.rejected
       ])
@@ -425,7 +425,7 @@ contract('StandardAssetRegistry', accounts => {
       await assertRevert(registry.update(3, 'new data'))
     })
 
-    it('reverts for an inexsistent asset', async () => {
+    it('reverts for an inexistent asset', async () => {
       await assertRevert(registry.update(10, 'new data'))
     })
 
