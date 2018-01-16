@@ -8,7 +8,7 @@ export default async promise => {
   }
 }
 
-export const AssertError = promise => {
+export const assertError = promise => {
   return Promise.all([
     promise.should.be.rejected
   ])
