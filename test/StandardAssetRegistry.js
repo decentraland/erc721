@@ -340,4 +340,3 @@ contract('StandardAssetRegistry', accounts => {
     })
   })
 })
-
