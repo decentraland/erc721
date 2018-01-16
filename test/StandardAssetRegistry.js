@@ -287,7 +287,7 @@ contract('StandardAssetRegistry', accounts => {
       await registry.generate(8, CONTENT_DATA, { from: creator })
       await assertRevert( registry.operatorTransfer(creator, 8, 0, 0) )
     })
-    it.only('throw if receiver is null', async () => {
+    it('throw if receiver is null', async () => {
       await registry.generate(8, CONTENT_DATA, { from: creator })
       await assertRevert( registry.operatorTransfer(null, 8, 0, 0) )
     })
