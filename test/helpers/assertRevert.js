@@ -7,3 +7,9 @@ export default async promise => {
     assert(revertFound, `Expected "revert", got ${error} instead`)
   }
 }
+
+export const AssertError = promise => {
+  return Promise.all([
+    promise.should.be.rejected
+  ])
+}
