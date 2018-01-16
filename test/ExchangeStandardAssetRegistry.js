@@ -34,7 +34,14 @@ contract('StandardAssetRegistry', accounts => {
     await registry.generate(0, CONTENT_DATA, sentByCreator)
     await registry.generate(1, CONTENT_DATA, sentByCreator)
   })
-
+  /**
+   * TESTS:
+   * - Happy path user sells asset, another buy it
+   * - Try to transfer an asset without permissions
+   * - Try to transfer an non existing asset
+   * - Try to transfer to the same user the asset
+   * -
+   */
   describe('test', () => {
     it('tests', async () => {
 
