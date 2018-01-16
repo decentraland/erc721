@@ -227,4 +227,54 @@ contract('StandardAssetRegistry', accounts => {
     })
   })
 
+  describe('Transacions Related', () => {
+    it('ensures the assets if passed to another owner after transfer', async () => {
+      const CONTENT_DATA = 'ramdom data'
+      const firstOwner = accounts[accounts.length - 2]
+      await registry.generate(3, CONTENT_DATA, { from: creator })
+      await registry.transfer(firstOwner, 3)
+      const newOwner = await registry.holderOf(3)
+      newOwner.should.be.equal(firstOwner)
+    })
+    it('ensures the sender owns the asset that is trying to send', async () => {
+      const CONTENT_DATA = 'ramdom data'
+      const randomOwner = accounts[accounts.length - 2]
+      const buyer = accounts[accounts.length - 3]
+      await registry.generate(4, CONTENT_DATA, { from: randomOwner })
+      await assertRevert( registry.transfer(buyer, 4) )
+    })
+    it('ensure only the first operation owns the asset when multiple are exec', async () => {
+      const CONTENT_DATA = 'ramdom data'
+      const buyer = accounts[accounts.length - 2]
+      await registry.generate(5, CONTENT_DATA, { from: creator })
+      await registry.transfer(buyer, 5)
+      await assertRevert( registry.transfer(accounts[accounts.length - 3], 5) )
+      await assertRevert( registry.transfer(accounts[accounts.length - 4], 5) )
+      await assertRevert( registry.transfer(accounts[accounts.length - 5], 5) )
+      const newOwner = await registry.holderOf(5)
+      newOwner.should.be.equal(buyer)     
+    })
+    it('throws if no params are sent', async () => {
+      return Promise.all([
+        registry.transfer().should.be.rejected
+      ])
+    })
+    it('throws if asset is missing', async () => {
+      const buyer = accounts[accounts.length - 2]
+      return Promise.all([
+        registry.transfer(buyer).should.be.rejected
+      ])
+    })
+    xit('sends to itself should throw', async () => {
+      const CONTENT_DATA = 'ramdom data'
+      await registry.generate(6, CONTENT_DATA, { from: creator })
+      await assertRevert( registry.transfer(creator, 6) )
+    })
+    xit('throws if asset is to transfer is missing', async () => {
+      return Promise.all([
+        registry.transfer(null, 1).should.be.rejected
+      ])
+    })
+  })
+
 })
