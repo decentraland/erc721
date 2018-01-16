@@ -33,6 +33,8 @@ contract('StandardAssetRegistry', accounts => {
   const _firstAssetlId = 1
   const _secondParcelId = 2
   const _unknownParcelId = 3
+  const alternativeAsset = { id: 2, data: 'data2' }
+  const sentByUser = { from: user }
   const sentByCreator = { from: creator }
   const creationParams = {
     gas: 4e6,
@@ -134,6 +136,76 @@ contract('StandardAssetRegistry', accounts => {
       const assets = await registry.assetsOf(NONE)
       const convertedAssets = assets.map(big => big.toString())
       convertedAssets.should.have.all.members([])
+    })
+  })
+
+  describe('generate', () => {
+    it('generates an asset with empty data', async () => {
+      await registry.generate(alternativeAsset.id, '', sentByUser)
+      const data = await registry.assetData(alternativeAsset.id)
+      data.should.be.empty
+    })
+    it('generates an asset with data', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      const data = await registry.assetData(alternativeAsset.id)
+      data.should.be.equal(alternativeAsset.data)
+    })
+    it('generates multiple assets', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      await registry.generate(3, 'data3', sentByUser)
+      await registry.generate(4, 'data4', sentByUser)
+      const assets = await registry.assetsOf(user)
+      const assetsData = await Promise.all(assets.map(asset => registry.assetData(asset)))
+      assetsData.should.have.all.members([alternativeAsset.data, 'data3', 'data4'])
+    })
+    it('fails if the assetId is already in use', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      await assertRevert(registry.generate(alternativeAsset.id, 'anotherData', sentByUser))
+    })
+    xit('generates an asset to the default account', async () => {
+      await registry.generate(alternativeAsset.id)
+      const assetOwner = await registry.holderOf(alternativeAsset.id)
+      assetOwner.should.be.equal(creator)
+    })
+    xit('generates an asset to a beneficiary account', async () => {
+      await registry.generate(alternativeAsset.id, anotherUser, alternativeAsset.data)
+      const assetOwner = await registry.holderOf(alternativeAsset.id)
+      assetOwner.should.be.equal(anotherUser)
+    })
+  })
+
+  describe('destroy', () => {
+    it('destroys an asset created', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByCreator)
+      let exist = await registry.exists(alternativeAsset.id)
+      exist.should.be.true
+      await registry.destroy(alternativeAsset.id)
+      exist = await registry.exists(alternativeAsset.id)
+      exist.should.be.false
+    })
+    it('tries to get data from asset already destroyed', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByCreator)
+      await registry.destroy(alternativeAsset.id)
+      await assertRevert(registry.assetData(alternativeAsset.id))
+    })
+    it('tries to destroy a not-owned asset', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      await assertRevert(registry.destroy(alternativeAsset.id))
+    })
+    it('destroys an asset by operator', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      let exist = await registry.exists(alternativeAsset.id)
+      exist.should.be.true
+      await registry.authorizeOperator(anotherUser, true, sentByUser)
+      await registry.destroy(alternativeAsset.id, { from: anotherUser})
+      exist = await registry.exists(alternativeAsset.id)
+      exist.should.be.false
+    })
+    it('fails if operator is not allowed to destroy', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      await registry.authorizeOperator(anotherUser, true, sentByUser)
+      await registry.authorizeOperator(anotherUser, false, sentByUser)
+      await assertRevert(registry.destroy(alternativeAsset.id, { from: anotherUser}))
     })
   })
 
