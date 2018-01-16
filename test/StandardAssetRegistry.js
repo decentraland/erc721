@@ -20,6 +20,21 @@ function checkApproveLog(log, parcelId, from, to) {
   log.args.beneficiary.should.be.equal(to)
 }
 
+function checkCreateLog(log, holder, assetId, operator, data) {
+  log.event.should.be.eq('Create')
+  log.args.holder.should.be.equal(holder)
+  log.args.assetId.should.be.bignumber.equal(assetId)
+  log.args.operator.should.be.equal(operator)
+  log.args.data.should.be.equal(data)
+}
+
+function checkDestroyLog(log, holder, assetId, operator) {
+  log.event.should.be.eq('Destroy')
+  log.args.holder.should.be.equal(holder)
+  log.args.assetId.should.be.bignumber.equal(assetId)
+  log.args.operator.should.be.equal(operator)
+}
+
 require('chai')
   .use(require('chai-as-promised'))
   .use(require('chai-bignumber')(BigNumber))
@@ -152,12 +167,8 @@ contract('StandardAssetRegistry', accounts => {
     })
     it('emits a Create event', async () => {
       const { logs } = await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
-      logs.length.should.be.equal(1);
-      logs[0].event.should.be.eq('Create')
-      logs[0].args.holder.should.be.equal(user)
-      logs[0].args.assetId.should.be.bignumber.equal(alternativeAsset.id)
-      logs[0].args.operator.should.be.equal(user)
-      logs[0].args.data.should.be.equal(alternativeAsset.data)
+      logs.length.should.be.equal(1)
+      checkCreateLog(logs[0], user, alternativeAsset.id, user, alternativeAsset.data)
     })
     it('generates multiple assets', async () => {
       await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
@@ -195,11 +206,8 @@ contract('StandardAssetRegistry', accounts => {
     it('emits a Destroy event', async () => {
       await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByCreator)
       const { logs } = await registry.destroy(alternativeAsset.id)
-      logs.length.should.be.equal(1);
-      logs[0].event.should.be.eq('Destroy')
-      logs[0].args.holder.should.be.equal(creator)
-      logs[0].args.assetId.should.be.bignumber.equal(alternativeAsset.id)
-      logs[0].args.operator.should.be.equal(creator)
+      logs.length.should.be.equal(1)
+      checkDestroyLog(logs[0], creator, alternativeAsset.id, creator)
     })
     it('tries to get data from asset already destroyed', async () => {
       await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByCreator)
