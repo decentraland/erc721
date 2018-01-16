@@ -51,4 +51,15 @@ contract('Exchange', accounts => {
       await assertRevert(exchange.buy(1, { ...sentByCreator, value: 1 }))
     })
   })
+
+  describe('basic buy/sell operation', () => {
+    it('should buy an specific asset ', async () => {
+      await registry.authorizeOperator(exchange.address, true)
+      await exchange.sell(0, 100, sentByCreator)
+      await exchange.buy(0, { ...sentByUser, value: 100 })
+      const assets = await registry.assetsOf(user)
+      const convertedAssets = assets.map(big => big.toString())
+      convertedAssets.should.have.all.members(['0'])
+    })
+  })
 })
