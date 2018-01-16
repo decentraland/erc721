@@ -27,6 +27,13 @@ function checkAuthorizationLog(log, operator, holder, authorized) {
   log.args.authorized.should.be.equal(authorized)
 }
 
+function checkUpdateLog(log, assetId, holder, operator) {
+  log.event.should.be.eq('Update')
+  log.args.assetId.should.be.bignumber.equal(assetId)
+  log.args.holder.should.be.equal(holder)
+  log.args.operator.should.be.equal(operator)  
+}
+
 require('chai')
   .use(require('chai-as-promised'))
   .use(require('chai-bignumber')(BigNumber))
@@ -44,6 +51,7 @@ contract('StandardAssetRegistry', accounts => {
   const _secondParcelId = 2
   const _unknownParcelId = 3
   const sentByCreator = { from: creator }
+  const sentByUser = { from: user }  
   const creationParams = {
     gas: 4e6,
     gasPrice: 21e9,
@@ -282,6 +290,43 @@ contract('StandardAssetRegistry', accounts => {
       await registry.authorizeOperator(user, authorized)
       await registry.authorizeOperator(user, !authorized)
       await assertRevert(registry.authorizeOperator(user, !authorized))
+    })
+  })
+
+  describe('update', () => {
+    it('updates the asset with new data if the sender is the holder', async () => {
+      await registry.update(0, 'new data')
+      const data = await registry.assetData(0)
+      data.should.equal('new data')
+    })
+
+    it('updates the asset with new data for a different operator', async () => {
+      await registry.authorizeOperator(user, true)
+      const {logs} = await registry.update(0, 'new data', sentByUser)
+      const data = await registry.assetData(0)
+      data.should.equal('new data')
+    })
+
+    it('reverts if the sender is not authorized', async () => {
+      await registry.generate(3, CONTENT_DATA, sentByUser)
+      await assertRevert(registry.update(3, 'new data'))
+    })
+
+    it('reverts for an inexsistent asset', async () => {
+      await assertRevert(registry.update(10, 'new data'))
+    })
+
+    it('emits an Update event', async () => {
+      const {logs} = await registry.update(0, 'new data')
+      logs.length.should.be.equal(1)
+      checkUpdateLog(logs[0], 0, creator, creator)
+    })
+
+    it('emits an Update event for a different operator', async () => {
+      await registry.authorizeOperator(user, true)
+      const {logs} = await registry.update(0, 'new data', sentByUser)
+      logs.length.should.be.equal(1)
+      checkUpdateLog(logs[0], 0, creator, user)
     })
   })
 })
