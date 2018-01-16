@@ -275,6 +275,26 @@ contract('StandardAssetRegistry', accounts => {
     it('throws if asset is to transfer is missing', async () => {
       AssertError(registry.transfer(null, 1))
     })
+    it('throw is operator sends to itself', async () => {
+      await registry.generate(6, CONTENT_DATA, { from: user })
+      await assertRevert( registry.operatorTransfer(anotherUser, 6, 0, 0) )
+    })
+    it('works only if operator', async () => {
+      await registry.generate(7, CONTENT_DATA, { from: creator })
+      await registry.operatorTransfer(anotherUser, 7, 0, 0)
+    })
+    it('throw is operator sends to itself', async () => {
+      await registry.generate(8, CONTENT_DATA, { from: creator })
+      await assertRevert( registry.operatorTransfer(creator, 8, 0, 0) )
+    })
+    it.only('throw if receiver is null', async () => {
+      await registry.generate(8, CONTENT_DATA, { from: creator })
+      await assertRevert( registry.operatorTransfer(null, 8, 0, 0) )
+    })
+    it('throw if receiver if missing argurments', async () => {
+      await registry.generate(9, CONTENT_DATA, { from: creator })
+      AssertError( registry.operatorTransfer(anotherUser, 9) )
+    })
   })
 
   describe('generate', () => {
