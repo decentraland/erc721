@@ -268,11 +268,11 @@ contract('StandardAssetRegistry', accounts => {
     it('throws if asset is missing', async () => {
       AssertError(registry.transfer(anotherUser))
     })
-    xit('sends to itself should throw', async () => {
+    it('sends to itself should throw', async () => {
       await registry.generate(6, CONTENT_DATA, { from: creator })
       await assertRevert( registry.transfer(creator, 6) )
     })
-    xit('throws if asset is to transfer is missing', async () => {
+    it('throws if asset is to transfer is missing', async () => {
       AssertError(registry.transfer(null, 1))
     })
   })

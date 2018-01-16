@@ -198,7 +198,19 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
     _;
   }
 
+  modifier senderIsDefined(address sender) {
+    require(sender != 0);
+    _;
+  }
+
+  modifier notItself(address sender) {
+    require(sender != msg.sender);
+    _;
+  }
+
   function transfer(address to, uint256 assetId)
+    senderIsDefined(to)
+    notItself(to)
     onlyHolder(assetId)
     public
   {
@@ -206,6 +218,8 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
   }
 
   function transfer(address to, uint256 assetId, bytes _userData)
+    senderIsDefined(to)
+    notItself(to)
     onlyHolder(assetId)
     public
   {
