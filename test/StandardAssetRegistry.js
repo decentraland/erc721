@@ -210,4 +210,21 @@ contract('StandardAssetRegistry', accounts => {
     })
   })
 
+  describe('isContract', () => {
+    it('returns true for a valid contract address', async () => {
+      const isContract = await registry.isContractProxy(registry.address)
+      isContract.should.equal(true)
+    })
+
+    it('returns false for a user address', async () => {
+      const isContract = await registry.isContractProxy(user)
+      isContract.should.equal(false)
+    })
+
+    it('returns false for an inexistant address', async () => {
+      const isContract = await registry.isContractProxy(NONE)
+      isContract.should.equal(false)
+    })
+  })
+
 })
