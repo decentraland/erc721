@@ -31,8 +31,24 @@ function checkUpdateLog(log, assetId, holder, operator) {
   log.event.should.be.eq('Update')
   log.args.assetId.should.be.bignumber.equal(assetId)
   log.args.holder.should.be.equal(holder)
-  log.args.operator.should.be.equal(operator)  
+  log.args.operator.should.be.equal(operator)
 }
+
+function checkCreateLog(log, holder, assetId, operator, data) {
+  log.event.should.be.eq('Create')
+  log.args.holder.should.be.equal(holder)
+  log.args.assetId.should.be.bignumber.equal(assetId)
+  log.args.operator.should.be.equal(operator)
+  log.args.data.should.be.equal(data)
+}
+
+function checkDestroyLog(log, holder, assetId, operator) {
+  log.event.should.be.eq('Destroy')
+  log.args.holder.should.be.equal(holder)
+  log.args.assetId.should.be.bignumber.equal(assetId)
+  log.args.operator.should.be.equal(operator)
+}
+
 
 require('chai')
   .use(require('chai-as-promised'))
@@ -46,10 +62,11 @@ contract('StandardAssetRegistry', accounts => {
   let registry = null
   const _name = 'Test'
   const _symbol = 'TEST'
-  const _description = 'Loremp ipsum'
+  const _description = 'lorem ipsum'
   const _firstAssetlId = 1
   const _secondParcelId = 2
   const _unknownParcelId = 3
+  const alternativeAsset = { id: 2, data: 'data2' }
   const sentByCreator = { from: creator }
   const sentByUser = { from: user }  
   const creationParams = {
@@ -222,6 +239,102 @@ contract('StandardAssetRegistry', accounts => {
       const assets = await registry.assetsOf(NONE)
       const convertedAssets = assets.map(big => big.toString())
       convertedAssets.should.have.all.members([])
+    })
+  })
+
+  describe('generate', () => {
+    it('generates an asset with empty data', async () => {
+      await registry.generate(alternativeAsset.id, '', sentByUser)
+      const data = await registry.assetData(alternativeAsset.id)
+      data.should.be.empty
+    })
+
+    it('generates an asset with data', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      const data = await registry.assetData(alternativeAsset.id)
+      data.should.be.equal(alternativeAsset.data)
+    })
+
+    it('emits a Create event', async () => {
+      const { logs } = await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      logs.length.should.be.equal(1)
+      checkCreateLog(logs[0], user, alternativeAsset.id, user, alternativeAsset.data)
+    })
+
+    it('generates multiple assets', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      await registry.generate(3, 'data3', sentByUser)
+      await registry.generate(4, 'data4', sentByUser)
+      const assets = await registry.assetsOf(user)
+      const assetsData = await Promise.all(assets.map(asset => registry.assetData(asset)))
+      assetsData.should.have.all.members([alternativeAsset.data, 'data3', 'data4'])
+    })
+
+    it('fails if the assetId is already in use', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      await assertRevert(registry.generate(alternativeAsset.id, 'anotherData', sentByUser))
+    })
+
+    xit('generates an asset to the default account', async () => {
+      await registry.generate(alternativeAsset.id)
+      const assetOwner = await registry.holderOf(alternativeAsset.id)
+      assetOwner.should.be.equal(creator)
+    })
+
+    xit('generates an asset to a beneficiary account', async () => {
+      await registry.generate(alternativeAsset.id, anotherUser, alternativeAsset.data)
+      const assetOwner = await registry.holderOf(alternativeAsset.id)
+      assetOwner.should.be.equal(anotherUser)
+    })
+  })
+
+  describe('destroy', () => {
+    it('destroys an asset created', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByCreator)
+      let exist = await registry.exists(alternativeAsset.id)
+      exist.should.be.true
+      await registry.destroy(alternativeAsset.id)
+      exist = await registry.exists(alternativeAsset.id)
+      exist.should.be.false
+    })
+
+    it('emits a Destroy event', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByCreator)
+      const {logs} = await registry.destroy(alternativeAsset.id)
+      logs.length.should.be.equal(1)
+      checkDestroyLog(logs[0], creator, alternativeAsset.id, creator)
+    })
+
+    it('tries to get data from asset already destroyed', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByCreator)
+      await registry.destroy(alternativeAsset.id)
+      await assertRevert(registry.assetData(alternativeAsset.id))
+    })
+
+    it('tries to destroy a not-existed asset', async () => {
+      await assertRevert(registry.destroy(alternativeAsset.id))
+    })
+
+    it('tries to destroy a not-owned asset', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      await assertRevert(registry.destroy(alternativeAsset.id))
+    })
+
+    it('destroys an asset by operator', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      let exist = await registry.exists(alternativeAsset.id)
+      exist.should.be.true
+      await registry.authorizeOperator(anotherUser, true, sentByUser)
+      await registry.destroy(alternativeAsset.id, {from: anotherUser})
+      exist = await registry.exists(alternativeAsset.id)
+      exist.should.be.false
+    })
+
+    it('fails if operator is not allowed to destroy', async () => {
+      await registry.generate(alternativeAsset.id, alternativeAsset.data, sentByUser)
+      await registry.authorizeOperator(anotherUser, true, sentByUser)
+      await registry.authorizeOperator(anotherUser, false, sentByUser)
+      await assertRevert(registry.destroy(alternativeAsset.id, {from: anotherUser}))
     })
   })
 
