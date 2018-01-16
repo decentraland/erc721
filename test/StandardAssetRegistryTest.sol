@@ -4,8 +4,9 @@ import '../contracts/StandardAssetRegistry.sol';
 
 contract StandardAssetRegistryTest is StandardAssetRegistry {
 
-  function StandardAssetRegistryTest() {
+  function StandardAssetRegistryTest () public {
     _name = "Test";
     _symbol = "TEST";
+    _description = "Loremp ipsum";
   }
 }
