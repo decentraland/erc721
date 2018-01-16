@@ -243,7 +243,7 @@ contract('StandardAssetRegistry', accounts => {
   })
 
   describe('Transacions Related', () => {
-    it('ensures the assets if passed to another owner after transfer', async () => {
+    it('ensures the assets is pass to another owner after transfer', async () => {
       const CONTENT_DATA = 'ramdom data'
       const firstOwner = accounts[accounts.length - 2]
       await registry.generate(3, CONTENT_DATA, { from: creator })
