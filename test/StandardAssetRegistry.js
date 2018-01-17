@@ -173,6 +173,26 @@ contract('StandardAssetRegistry', accounts => {
     it('throws if id is not provided', async () => {
       return Promise.all([registry.assetData().should.be.rejected])
     })
+    it('returns an empty string for a nonexistent assetId', async () => {
+      const output = await registry.assetData(10)
+      output.should.be.equal('')
+    })
+  })
+
+  describe('safeAssetData', async () => {
+    it('should returns the proper data', async () => {
+      const output = await registry.safeAssetData(0)
+      output.should.be.equal(CONTENT_DATA)
+    })
+    it('throws if not valid id', async () => {
+      return Promise.all([registry.safeAssetData(true).should.be.rejected])
+    })
+    it('throws if id is not provided', async () => {
+      return Promise.all([registry.safeAssetData().should.be.rejected])
+    })
+    it('reverts for a nonexistent assetId', async () => {
+      await assertRevert(registry.safeAssetData(10));
+    })
   })
 
   describe('assetCount', () => {
@@ -450,7 +470,7 @@ contract('StandardAssetRegistry', accounts => {
         sentByCreator
       )
       await registry.destroy(alternativeAsset.id)
-      await assertRevert(registry.assetData(alternativeAsset.id))
+      await assertRevert(registry.safeAssetData(alternativeAsset.id))
     })
 
     it('tries to destroy a not-existed asset', async () => {
