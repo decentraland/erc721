@@ -58,7 +58,7 @@ contract('Exchange', accounts => {
       await assertRevert(exchange.buy(2))
     })
 
-    xit('reverts when transfering an asset to himself', async () => {
+    it('reverts when transfering an asset to himself', async () => {
       await registry.authorizeOperator(exchange.address, true)
       await exchange.sell(1, 1, sentByCreator)
       await assertRevert(exchange.buy(1, { ...sentByCreator, value: 1 }))
