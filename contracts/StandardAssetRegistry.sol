@@ -152,6 +152,10 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry, EIP820 {
     _count = _count.sub(1);
   }
 
+  function _removeAssetData(uint256 assetId) internal {
+    _assetData[assetId] = '';
+  }
+
   //
   // Supply-altering functions
   //
@@ -169,6 +173,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry, EIP820 {
     require(holder != 0);
 
     _removeAssetFrom(holder, assetId);
+    _removeAssetData(assetId);
 
     Transfer(holder, 0, assetId, msg.sender, '', '');
   }
