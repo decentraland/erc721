@@ -5,24 +5,27 @@ interface IAssetRegistry {
   /**
    * Global Registry getter functions
    */
-  function name() public constant returns (string);
-  function symbol() public constant returns (string);
-  function description() public constant returns (string);
-  function totalSupply() public constant returns (uint256);
+  function name() public view returns (string);
+  function symbol() public view returns (string);
+  function description() public view returns (string);
+  function totalSupply() public view returns (uint256);
 
   /**
    * Asset-centric getter functions
    */
-  function exists(uint256 assetId) public constant returns (bool);
-  function holderOf(uint256 assetId) public constant returns (address);
-  function assetData(uint256 assetId) public constant returns (string);
+  function exists(uint256 assetId) public view returns (bool);
+
+  function holderOf(uint256 assetId) public view returns (address);
+  function safeHolderOf(uint256 assetId) public view returns (address);
+
+  function assetData(uint256 assetId) public view returns (string);
 
   /**
    * Holder-centric getter functions
    */
-  function assetsCount(address holder) public constant returns (uint256);
-  function assetByIndex(address holder, uint256 index) public constant returns (uint256);
-  function assetsOf(address holder) public constant returns (uint256[]);
+  function assetCount(address holder) public view returns (uint256);
+  function assetByIndex(address holder, uint256 index) public view returns (uint256);
+  function assetsOf(address holder) external view returns (uint256[]);
 
   /**
    * Transfer Operations
@@ -30,17 +33,6 @@ interface IAssetRegistry {
   function transfer(address to, uint256 assetId) public;
   function transfer(address to, uint256 assetId, bytes userData) public;
   function operatorTransfer(address to, uint256 assetId, bytes userData, bytes operatorData) public;
-
-  /**
-   * Data modification operations
-   */
-  function update(uint256 assetId, string data) public;
-
-  /**
-   * Supply-altering operations
-   */
-  function generate(uint256 assetId, string data) public;
-  function destroy(uint256 assetId) public;
 
   /**
    * Authorization operations
@@ -51,7 +43,7 @@ interface IAssetRegistry {
    * Authorization getters
    */
   function isOperatorAuthorizedFor(address operator, address assetHolder)
-    public constant returns (bool);
+    public view returns (bool);
 
   /**
    * Events
@@ -64,22 +56,11 @@ interface IAssetRegistry {
     bytes userData,
     bytes operatorData
   );
-  event Create(
-    address indexed holder,
-    uint256 indexed assetId,
-    address indexed operator,
-    string data
-  );
   event Update(
     uint256 indexed assetId,
     address indexed holder,
     address indexed operator,
     string data
-  );
-  event Destroy(
-    address indexed holder,
-    uint256 indexed assetId,
-    address indexed operator
   );
   event AuthorizeOperator(
     address indexed operator,
