@@ -173,6 +173,26 @@ contract('StandardAssetRegistry', accounts => {
     it('throws if id is not provided', async () => {
       return Promise.all([registry.assetData().should.be.rejected])
     })
+    it('returns an empty string for a nonexistent assetId', async () => {
+      const output = await registry.assetData(10)
+      output.should.be.equal('')
+    })
+  })
+
+  describe('safeAssetData', async () => {
+    it('should returns the proper data', async () => {
+      const output = await registry.safeAssetData(0)
+      output.should.be.equal(CONTENT_DATA)
+    })
+    it('throws if not valid id', async () => {
+      return Promise.all([registry.safeAssetData(true).should.be.rejected])
+    })
+    it('throws if id is not provided', async () => {
+      return Promise.all([registry.safeAssetData().should.be.rejected])
+    })
+    it('reverts for a nonexistent assetId', async () => {
+      await assertRevert(registry.safeAssetData(10));
+    })
   })
 
   describe('assetCount', () => {
@@ -277,7 +297,7 @@ contract('StandardAssetRegistry', accounts => {
         from: creator
       })
     })
-    it('reverts when trying to transfer and to address is the same as the holder address', async () => {
+    it('reverts when trying to transfer and To address is the same as the holder address', async () => {
       await registry.generate(7, anotherUser, CONTENT_DATA, { from: creator })
       await assertRevert(
         registry.transferTo(anotherUser, 7, clear, clear, {
@@ -285,7 +305,7 @@ contract('StandardAssetRegistry', accounts => {
         })
       )
     })
-    it('throw if receiver is null', async () => {
+    it('reverts if receiver is null', async () => {
       await registry.generate(8, creator, CONTENT_DATA, { from: creator })
       await assertRevert(
         registry.transferTo(NONE, 8, clear, clear, { from: creator })
@@ -451,7 +471,7 @@ contract('StandardAssetRegistry', accounts => {
       checkDestroyLog(logs[0], creator, alternativeAsset.id, creator)
     })
 
-    it('tries to get data from asset already destroyed', async () => {
+    it('reverts when calling safeAssetData and the asset was already destroyed', async () => {
       await registry.generate(
         alternativeAsset.id,
         creator,
@@ -459,7 +479,7 @@ contract('StandardAssetRegistry', accounts => {
         sentByCreator
       )
       await registry.destroy(alternativeAsset.id)
-      await assertRevert(registry.assetData(alternativeAsset.id))
+      await assertRevert(registry.safeAssetData(alternativeAsset.id))
     })
 
     it('tries to destroy a not-existed asset', async () => {
