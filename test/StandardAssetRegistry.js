@@ -1,16 +1,31 @@
 import assertRevert, { assertError } from './helpers/assertRevert'
 
+import getEIP820 from './helpers/getEIP820'
+
 const BigNumber = web3.BigNumber
 
 const StandardAssetRegistry = artifacts.require('StandardAssetRegistryTest')
+const Holder = artifacts.require('Holder')
+const NonHolder = artifacts.require('NonHolder')
 
 const NONE = '0x0000000000000000000000000000000000000000'
 
-function checkTransferLog(log, parcelId, from, to) {
+function checkTransferLog(
+  log,
+  assetId,
+  from,
+  to,
+  operator,
+  userData,
+  operatorData
+) {
   log.event.should.be.eq('Transfer')
-  log.args.parcelId.should.be.bignumber.equal(parcelId)
+  log.args.assetId.should.be.bignumber.equal(assetId)
   log.args.from.should.be.equal(from)
   log.args.to.should.be.equal(to)
+  log.args.operator.should.be.equal(operator)
+  log.args.userData.should.be.equal(userData)
+  log.args.operatorData.should.be.equal(operatorData)
 }
 
 function checkAuthorizationLog(log, operator, holder, authorized) {
@@ -54,12 +69,11 @@ const expect = require('chai').expect
 contract('StandardAssetRegistry', accounts => {
   const [creator, user, anotherUser, operator, mallory] = accounts
   let registry = null
+  let EIP820 = null
   const _name = 'Test'
   const _symbol = 'TEST'
   const _description = 'lorem ipsum'
   const _firstAssetlId = 1
-  const _secondParcelId = 2
-  const _unknownParcelId = 3
   const alternativeAsset = { id: 2, data: 'data2' }
   const sentByCreator = { from: creator }
   const sentByUser = { from: user }
@@ -72,6 +86,7 @@ contract('StandardAssetRegistry', accounts => {
 
   beforeEach(async function() {
     registry = await StandardAssetRegistry.new(creationParams)
+    EIP820 = await getEIP820(creator)
     await registry.generate(0, creator, CONTENT_DATA, sentByCreator)
     await registry.generate(1, creator, CONTENT_DATA, sentByCreator)
   })
@@ -254,21 +269,70 @@ contract('StandardAssetRegistry', accounts => {
     it('throws if asset is to transfer is missing', async () => {
       assertError(registry.transfer(null, 1))
     })
-    it('throw is operator sends to itself', async () => {
-      await registry.generate(6, user, CONTENT_DATA, { from: user })
-      await assertRevert(registry.operatorTransfer(anotherUser, 6, 0, 0))
-    })
+    const clear = ''
     it('works only if operator', async () => {
-      await registry.generate(7, creator, CONTENT_DATA, { from: creator })
-      await registry.operatorTransfer(anotherUser, 7, 0, 0)
+      await registry.generate(7, anotherUser, CONTENT_DATA, { from: creator })
+      await registry.transferTo(anotherUser, 7, clear, clear, {
+        from: anotherUser
+      })
     })
     it('throw if receiver is null', async () => {
       await registry.generate(8, creator, CONTENT_DATA, { from: creator })
-      await assertRevert(registry.operatorTransfer(null, 8, 0, 0))
+      await assertRevert(
+        registry.transferTo(NONE, 8, clear, clear, { from: creator })
+      )
     })
-    it('throw if receiver if missing argurments', async () => {
-      await registry.generate(9, creator, CONTENT_DATA, { from: creator })
-      assertError(registry.operatorTransfer(anotherUser, 9))
+  })
+
+  describe('eip820 compatibility', () => {
+    const USER_DATA = 'user'
+    const OP_DATA = 'op'
+    let holder
+    let nonHolder
+    before(async () => {
+      holder = await Holder.new({ from: creator })
+      nonHolder = await NonHolder.new({ from: creator })
+    })
+
+    it('holder receives the token', async () => {
+      const asset = 102
+      await registry.generate(asset, creator, CONTENT_DATA, { from: creator })
+      await registry.transferTo(holder.address, asset, USER_DATA, OP_DATA, {
+        from: creator
+      })
+      const newOwner = await registry.holderOf(asset)
+      newOwner.should.be.equal(holder.address)
+    })
+
+    it('event is created', async () => {
+      const asset = 101
+      await registry.generate(asset, creator, CONTENT_DATA, { from: creator })
+      const { logs } = await registry.transferTo(
+        holder.address,
+        asset,
+        USER_DATA,
+        OP_DATA,
+        { from: creator }
+      )
+      checkTransferLog(
+        logs[0],
+        asset,
+        creator,
+        holder.address,
+        creator,
+        '0x' + new Buffer(USER_DATA).toString('hex'),
+        '0x' + new Buffer(OP_DATA).toString('hex')
+      )
+    })
+
+    it('non holder does not receive the token', async () => {
+      const asset = 100
+      await registry.generate(asset, creator, CONTENT_DATA, { from: creator })
+      await assertRevert(
+        registry.transferTo(nonHolder.address, asset, USER_DATA, OP_DATA, {
+          from: creator
+        })
+      )
     })
   })
 

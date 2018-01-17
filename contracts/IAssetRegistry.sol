@@ -32,7 +32,7 @@ interface IAssetRegistry {
    */
   function transfer(address to, uint256 assetId) public;
   function transfer(address to, uint256 assetId, bytes userData) public;
-  function operatorTransfer(address to, uint256 assetId, bytes userData, bytes operatorData) public;
+  function transferTo(address to, uint256 assetId, bytes userData, bytes operatorData) public;
 
   /**
    * Authorization operations
