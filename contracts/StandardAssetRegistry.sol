@@ -53,6 +53,10 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry, EIP820 {
   }
 
   function assetData(uint256 assetId) public view returns (string) {
+    return _assetData[assetId];
+  }
+
+  function safeAssetData(uint256 assetId) public view returns (string) {
     require(_holderOf[assetId] != 0);
     return _assetData[assetId];
   }
