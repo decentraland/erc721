@@ -2,13 +2,16 @@ pragma solidity ^0.4.18;
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
+import 'eip820/contracts/InterfaceImplementationRegistry.sol';
+import 'eip820/contracts/EIP820.sol';
+
 import './AssetRegistryStorage.sol';
 
 import './IAssetRegistry.sol';
 
 import './IAssetHolder.sol';
 
-contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
+contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry, EIP820 {
   using SafeMath for uint256;
 
   //
@@ -64,6 +67,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
 
   function assetByIndex(address holder, uint256 index) public view returns (uint256) {
     require(index < _assetsOf[holder].length);
+    require(index < (1<<127));
     return _assetsOf[holder][index];
   }
 
@@ -191,7 +195,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
 
   function transfer(address to, uint256 assetId)
     isDestinataryDefined(to)
-    onlyHolder(assetId)
+    onlyOperatorOrHolder(assetId)
     public
   {
     return _doSend(to, assetId, '', 0, '');
@@ -199,13 +203,13 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
 
   function transfer(address to, uint256 assetId, bytes userData)
     isDestinataryDefined(to)
-    onlyHolder(assetId)
+    onlyOperatorOrHolder(assetId)
     public
   {
     return _doSend(to, assetId, userData, 0, '');
   }
 
-  function operatorTransfer(
+  function transfer(
     address to, uint256 assetId, bytes userData, bytes operatorData
   )
     isDestinataryDefined(to)
@@ -224,11 +228,15 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
     _removeAssetFrom(holder, assetId);
     _addAssetTo(to, assetId);
 
-    // TODO: Implement EIP 820
     if (_isContract(to)) {
       require(!_reentrancy);
       _reentrancy = true;
-      IAssetHolder(to).onAssetReceived(assetId, holder, to, userData, operator, operatorData);
+
+      address recipient = interfaceAddr(to, 'IAssetHolder');
+      require(recipient != 0);
+
+      IAssetHolder(recipient).onAssetReceived(assetId, holder, to, userData, operator, operatorData);
+
       _reentrancy = false;
     }
 
