@@ -296,7 +296,7 @@ contract('StandardAssetRegistry', accounts => {
         from: anotherUser
       })
     })
-    it('throw if receiver is null', async () => {
+    it('revert if receiver is null', async () => {
       await registry.generate(8, creator, CONTENT_DATA, { from: creator })
       await assertRevert(
         registry.transferTo(NONE, 8, clear, clear, { from: creator })
@@ -462,7 +462,7 @@ contract('StandardAssetRegistry', accounts => {
       checkDestroyLog(logs[0], creator, alternativeAsset.id, creator)
     })
 
-    it('tries to get data from asset already destroyed', async () => {
+    it('reverts when calling safeAssetData and the asset was already destroyed', async () => {
       await registry.generate(
         alternativeAsset.id,
         creator,
