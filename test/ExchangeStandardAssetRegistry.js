@@ -35,31 +35,33 @@ contract('Exchange', accounts => {
     await registry.generate(1, CONTENT_DATA, sentByCreator)
   })
 
-  describe('Exchange a non existing asset', () => {
-    it('tries to sell a non existing asset', async () => {
-      await assertRevert(exchange.sell(2, 200, sentByCreator))
-    })
-    it('tries to buy a non existing asset', async () => {
-      await assertRevert(exchange.buy(2))
-    })
-  })
-
-  describe('Exchange asset to the same user', () => {
-    xit('tries to transfer an asset to himself', async () => {
-      await registry.authorizeOperator(exchange.address, true)
-      await exchange.sell(1, 1, sentByCreator)
-      await assertRevert(exchange.buy(1, { ...sentByCreator, value: 1 }))
-    })
-  })
-
-  describe('basic buy/sell operation', () => {
-    it('should buy an specific asset ', async () => {
+  describe('Exchange operations', () => {
+    it('buys an specific asset', async () => {
       await registry.authorizeOperator(exchange.address, true)
       await exchange.sell(0, 100, sentByCreator)
       await exchange.buy(0, { ...sentByUser, value: 100 })
       const assets = await registry.assetsOf(user)
       const convertedAssets = assets.map(big => big.toString())
       convertedAssets.should.have.all.members(['0'])
+    })
+
+    it('reverts when buying without authorization', async () => {
+      await exchange.sell(0, 100, sentByCreator)
+      await assertRevert(exchange.buy(0, { ...sentByUser, value: 100 }))
+    })
+
+    it('reverts when selling a non existing asset', async () => {
+      await assertRevert(exchange.sell(2, 200, sentByCreator))
+    })
+
+    it('reverts when buying a non existing asset', async () => {
+      await assertRevert(exchange.buy(2))
+    })
+
+    xit('reverts when transfering an asset to himself', async () => {
+      await registry.authorizeOperator(exchange.address, true)
+      await exchange.sell(1, 1, sentByCreator)
+      await assertRevert(exchange.buy(1, { ...sentByCreator, value: 1 }))
     })
   })
 })
