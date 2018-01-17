@@ -473,7 +473,7 @@ contract('StandardAssetRegistry', accounts => {
       await assertRevert(registry.safeAssetData(alternativeAsset.id))
     })
 
-    xit('checks if destroyed asset has empty data', async () => {
+    it('checks if destroyed asset has empty data', async () => {
       await registry.generate(
         alternativeAsset.id,
         creator,
