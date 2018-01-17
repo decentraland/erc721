@@ -43,6 +43,12 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
     return _holderOf[assetId];
   }
 
+  function safeHolderOf(uint256 assetId) public view returns (address) {
+    address holder = _holderOf[assetId];
+    require(holder != 0);
+    return holder;
+  }
+
   function assetData(uint256 assetId) public view returns (string) {
     require(_holderOf[assetId] != 0);
     return _assetData[assetId];
@@ -52,7 +58,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
   // Holder-centric getter functions
   //
 
-  function assetsCount(address holder) public view returns (uint256) {
+  function assetCount(address holder) public view returns (uint256) {
     return _assetsOf[holder].length;
   }
 
@@ -61,13 +67,8 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
     return _assetsOf[holder][index];
   }
 
-  function assetsOf(address holder) public view returns (uint256[]) {
-    uint size = _assetsOf[holder].length;
-    uint[] memory result = new uint[](size);
-    for (uint i = 0; i < size; i++) {
-      result[i] = _assetsOf[holder][i];
-    }
-    return result;
+  function assetsOf(address holder) external view returns (uint256[]) {
+    return _assetsOf[holder];
   }
 
   //
@@ -80,15 +81,15 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
     return _operators[assetHolder][operator];
   }
 
-  function authorizeOperator(address operator, bool _authorized) public {
-    if (_authorized) {
+  function authorizeOperator(address operator, bool authorized) public {
+    if (authorized) {
       require(!isOperatorAuthorizedFor(operator, msg.sender));
       _addAuthorization(operator, msg.sender);
     } else {
       require(isOperatorAuthorizedFor(operator, msg.sender));
       _clearAuthorization(operator, msg.sender);
     }
-    AuthorizeOperator(operator, msg.sender, _authorized);
+    AuthorizeOperator(operator, msg.sender, authorized);
   }
 
   function _addAuthorization(address operator, address holder) private {
@@ -106,7 +107,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
   function _addAssetTo(address to, uint256 assetId) internal {
     _holderOf[assetId] = to;
 
-    uint256 length = assetsCount(to);
+    uint256 length = assetCount(to);
 
     _assetsOf[to].push(assetId);
 
@@ -123,7 +124,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
 
   function _removeAssetFrom(address from, uint256 assetId) internal {
     uint256 assetIndex = _indexOfAsset[assetId];
-    uint256 lastAssetIndex = assetsCount(from).sub(1);
+    uint256 lastAssetIndex = assetCount(from).sub(1);
     uint256 lastAssetId = _assetsOf[from][lastAssetIndex];
 
     _holderOf[assetId] = 0;
@@ -151,36 +152,21 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
   // Supply-altering functions
   //
 
-  function generate(uint256 assetId) public {
-    generate(assetId, msg.sender, '');
-  }
-
-  function generate(uint256 assetId, string data) public {
-    generate(assetId, msg.sender, data);
-  }
-
-  function generate(uint256 assetId, address _beneficiary, string data) public {
-    doGenerate(assetId, _beneficiary, data);
-  }
-
-  function doGenerate(uint256 assetId, address _beneficiary, string data) internal {
+  function _generate(uint256 assetId, address beneficiary, string data) internal {
     require(_holderOf[assetId] == 0);
 
-    _addAssetTo(_beneficiary, assetId, data);
+    _addAssetTo(beneficiary, assetId, data);
 
-    Create(_beneficiary, assetId, msg.sender, data);
+    Transfer(0, beneficiary, assetId, msg.sender, bytes(data), '');
   }
 
-  function destroy(uint256 assetId) public {
+  function _destroy(uint256 assetId) internal {
     address holder = _holderOf[assetId];
     require(holder != 0);
 
-    require(holder == msg.sender
-         || isOperatorAuthorizedFor(msg.sender, holder));
-
     _removeAssetFrom(holder, assetId);
 
-    Destroy(holder, assetId, msg.sender);
+    Transfer(holder, 0, assetId, msg.sender, '', '');
   }
 
   //
@@ -192,7 +178,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
     _;
   }
 
-  modifier onlyOperator(uint256 assetId) {
+  modifier onlyOperatorOrHolder(uint256 assetId) {
     require(_holderOf[assetId] == msg.sender
          || isOperatorAuthorizedFor(msg.sender, _holderOf[assetId]));
     _;
@@ -208,28 +194,28 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
     onlyHolder(assetId)
     public
   {
-    return doSend(to, assetId, '', 0, '');
+    return _doSend(to, assetId, '', 0, '');
   }
 
-  function transfer(address to, uint256 assetId, bytes _userData)
+  function transfer(address to, uint256 assetId, bytes userData)
     isDestinataryDefined(to)
     onlyHolder(assetId)
     public
   {
-    return doSend(to, assetId, _userData, 0, '');
+    return _doSend(to, assetId, userData, 0, '');
   }
 
   function operatorTransfer(
     address to, uint256 assetId, bytes userData, bytes operatorData
   )
     isDestinataryDefined(to)
-    onlyOperator(assetId)
+    onlyOperatorOrHolder(assetId)
     public
   {
-    return doSend(to, assetId, userData, msg.sender, operatorData);
+    return _doSend(to, assetId, userData, msg.sender, operatorData);
   }
 
-  function doSend(
+  function _doSend(
     address to, uint256 assetId, bytes userData, address operator, bytes operatorData
   )
     internal
@@ -239,8 +225,8 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
     _addAssetTo(to, assetId);
 
     // TODO: Implement EIP 820
-    if (isContract(to)) {
-      require(_reentrancy == false);
+    if (_isContract(to)) {
+      require(!_reentrancy);
       _reentrancy = true;
       IAssetHolder(to).onAssetReceived(assetId, holder, to, userData, operator, operatorData);
       _reentrancy = false;
@@ -253,13 +239,8 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
   // Update related functions
   //
 
-  modifier onlyIfUpdateAllowed(uint256 assetId) {
-    require(_holderOf[assetId] == msg.sender
-         || isOperatorAuthorizedFor(msg.sender, _holderOf[assetId]));
-    _;
-  }
-
-  function update(uint256 assetId, string data) onlyIfUpdateAllowed(assetId) public {
+  function _update(uint256 assetId, string data) internal {
+    require(exists(assetId));
     _assetData[assetId] = data;
     Update(assetId, _holderOf[assetId], msg.sender, data);
   }
@@ -268,7 +249,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
   // Utilities
   //
 
-  function isContract(address addr) internal view returns (bool) {
+  function _isContract(address addr) internal view returns (bool) {
     uint size;
     assembly { size := extcodesize(addr) }
     return size > 0;

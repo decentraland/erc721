@@ -11,7 +11,18 @@ contract StandardAssetRegistryTest is StandardAssetRegistry {
   }
 
   function isContractProxy(address addr) public view returns (bool) {
-    return isContract(addr);
+    return _isContract(addr);
   }
 
+  function generate(uint256 assetId, address beneficiary, string data) public {
+    _generate(assetId, beneficiary, data);
+  }
+
+  function update(uint256 assetId, string data) public {
+    _update(assetId, data);
+  }
+
+  function destroy(uint256 assetId) public {
+    _destroy(assetId);
+  }
 }
