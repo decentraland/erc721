@@ -209,7 +209,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry, EIP820 {
     return _doSend(to, assetId, userData, 0, '');
   }
 
-  function transferTo(
+  function transfer(
     address to, uint256 assetId, bytes userData, bytes operatorData
   )
     isDestinataryDefined(to)
