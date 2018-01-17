@@ -21,7 +21,7 @@ contract Exchange {
         require(msg.value >= _orders[assetId]);
         require(_orders[assetId] > 0);
         nonFungible.holderOf(assetId).transfer(_orders[assetId]);
-        nonFungible.operatorTransfer(msg.sender, assetId, '', '');
+        nonFungible.transfer(msg.sender, assetId, '', '');
     }
 }
 

@@ -31,8 +31,8 @@ contract('Exchange', accounts => {
   beforeEach(async () => {
     registry = await StandardAssetRegistry.new(creationParams)
     exchange = await Exchange.new(registry.address)
-    await registry.generate(0, CONTENT_DATA, sentByCreator)
-    await registry.generate(1, CONTENT_DATA, sentByCreator)
+    await registry.generate(0, creator, CONTENT_DATA, sentByCreator)
+    await registry.generate(1, creator, CONTENT_DATA, sentByCreator)
   })
 
   describe('Exchange operations', () => {
