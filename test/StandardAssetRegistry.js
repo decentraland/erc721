@@ -292,11 +292,20 @@ contract('StandardAssetRegistry', accounts => {
     const clear = ''
     it('works only if operator', async () => {
       await registry.generate(7, anotherUser, CONTENT_DATA, { from: creator })
-      await registry.transferTo(anotherUser, 7, clear, clear, {
-        from: anotherUser
+      await registry.authorizeOperator(creator, true, { from: anotherUser })
+      await registry.transferTo(user, 7, clear, clear, {
+        from: creator
       })
     })
-    it('revert if receiver is null', async () => {
+    it('reverts when trying to transfer and To address is the same as the holder address', async () => {
+      await registry.generate(7, anotherUser, CONTENT_DATA, { from: creator })
+      await assertRevert(
+        registry.transferTo(anotherUser, 7, clear, clear, {
+          from: anotherUser
+        })
+      )
+    })
+    it('reverts if receiver is null', async () => {
       await registry.generate(8, creator, CONTENT_DATA, { from: creator })
       await assertRevert(
         registry.transferTo(NONE, 8, clear, clear, { from: creator })

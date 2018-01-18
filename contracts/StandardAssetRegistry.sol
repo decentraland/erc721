@@ -202,31 +202,34 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry, EIP820 {
     _;
   }
 
-  function transfer(address to, uint256 assetId)
-    isDestinataryDefined(to)
-    onlyOperatorOrHolder(assetId)
-    public
-  {
-    return _doSend(to, assetId, '', 0, '');
+  modifier destinataryIsNotHolder(uint256 assetId, address to) {
+    require(_holderOf[assetId] != to);
+    _;
   }
 
-  function transfer(address to, uint256 assetId, bytes userData)
-    isDestinataryDefined(to)
-    onlyOperatorOrHolder(assetId)
-    public
-  {
-    return _doSend(to, assetId, userData, 0, '');
+  function transfer(address to, uint256 assetId) public {
+    return _doTransfer(to, assetId, '', 0, '');
   }
 
-  function transfer(
-    address to, uint256 assetId, bytes userData, bytes operatorData
+  function transfer(address to, uint256 assetId, bytes userData) public {
+    return _doTransfer(to, assetId, userData, 0, '');
+  }
+
+  function transfer(address to, uint256 assetId, bytes userData, bytes operatorData) public {
+    return _doTransfer(to, assetId, userData, msg.sender, operatorData);
+  }
+
+  function _doTransfer(
+    address to, uint256 assetId, bytes userData, address operator, bytes operatorData
   )
     isDestinataryDefined(to)
+    destinataryIsNotHolder(assetId, to)
     onlyOperatorOrHolder(assetId)
-    public
+    internal
   {
-    return _doSend(to, assetId, userData, msg.sender, operatorData);
+    return _doSend(to, assetId, userData, operator, operatorData);
   }
+
 
   function _doSend(
     address to, uint256 assetId, bytes userData, address operator, bytes operatorData
