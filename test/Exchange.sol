@@ -23,7 +23,7 @@ contract Exchange {
     nonFungible.holderOf(assetId).transfer(_orders[assetId]);
     uint remaining = msg.value - _orders[assetId];
     if (remaining > 0) {
-      msg.sender.transfer(remaining);
+     msg.sender.transfer(remaining);
     }
     nonFungible.transfer(msg.sender, assetId, '', '');
   }

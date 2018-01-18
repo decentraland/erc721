@@ -47,11 +47,14 @@ contract('Exchange', accounts => {
 
     xit('refunds remaining balance', async () => {
       const originalBalance = web3.eth.getBalance(user)
-      const c = await registry.authorizeOperator(exchange.address, true)
-      const b = await exchange.sell(0, 100, sentByCreator)
-      const a = await exchange.buy(0, { ...sentByUser, value: 200 })
+      await registry.authorizeOperator(exchange.address, true)
+      await exchange.sell(0, web3.toWei(1, 'ether'), sentByCreator)
+      await exchange.buy(0, { ...sentByUser, value: web3.toWei(3, 'ether') })
       const currentBalance = web3.eth.getBalance(user);
-      const diff = currentBalance.minus(originalBalance)
+      console.log(originalBalance.toNumber(), web3.fromWei(originalBalance.toNumber(), 'ether'))
+      console.log(currentBalance.toNumber(), web3.fromWei(currentBalance.toNumber(), 'ether'))
+      const diff = originalBalance.toNumber() - currentBalance.toNumber()
+      console.log(diff, web3.fromWei(diff, 'ether'))
       console.log(web3.fromWei(diff).toNumber())
     })
 
