@@ -68,12 +68,12 @@ contract('Exchange', accounts => {
       await assertRevert(exchange.buy(2))
     })
     
-    it('reverts when trying to buy with insufficent funds', async () => {
+    it('reverts when trying to buy with insufficient funds', async () => {
       await exchange.sell(0, 100, sentByCreator)
       await assertRevert(exchange.buy(0, { ...sentByUser, value: 50 }))
     })
 
-    it('reverts when transfering an asset to himself', async () => {
+    it('reverts when transferring an asset to himself', async () => {
       await registry.authorizeOperator(exchange.address, true)
       await exchange.sell(1, 1, sentByCreator)
       await assertRevert(exchange.buy(1, { ...sentByCreator, value: 1 }))
