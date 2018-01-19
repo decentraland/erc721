@@ -45,6 +45,16 @@ contract('Exchange', accounts => {
       convertedAssets.should.have.all.members(['0'])
     })
 
+    it('refunds remaining balance', async () => {
+      const originalBalance = web3.eth.getBalance(user)
+      await registry.authorizeOperator(exchange.address, true)
+      await exchange.sell(0, web3.toWei(10, 'ether'), sentByCreator)
+      await exchange.buy(0, { ...sentByUser, value: web3.toWei(20, 'ether') })
+      const currentBalance = web3.eth.getBalance(user);
+      const diff = originalBalance.toNumber() - currentBalance.toNumber()
+      Math.round(web3.fromWei(diff, 'ether')).should.equal(10) // round down the gas      
+    })
+
     it('reverts when buying without authorization', async () => {
       await exchange.sell(0, 100, sentByCreator)
       await assertRevert(exchange.buy(0, { ...sentByUser, value: 100 }))
@@ -54,8 +64,13 @@ contract('Exchange', accounts => {
       await assertRevert(exchange.sell(2, 200, sentByCreator))
     })
 
-    it('reverts when buying a non existing asset', async () => {
+    it('reverts when buying an asset not on sale', async () => {
       await assertRevert(exchange.buy(2))
+    })
+    
+    it('reverts when trying to buy with insufficent funds', async () => {
+      await exchange.sell(0, 100, sentByCreator)
+      await assertRevert(exchange.buy(0, { ...sentByUser, value: 50 }))
     })
 
     it('reverts when transfering an asset to himself', async () => {
