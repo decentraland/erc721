@@ -32,7 +32,7 @@ contract AssetRegistryStorage {
   mapping(uint256 => string) internal _assetData;
 
   /**
-   * For a given account, for a given opperator, store whether that operator is
+   * For a given account, for a given operator, store whether that operator is
    * allowed to transfer and modify assets on behalf of them.
    */
   mapping(address => mapping(address => bool)) internal _operators;
