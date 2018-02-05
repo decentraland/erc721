@@ -34,6 +34,14 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry, EIP820Im
     return _count;
   }
 
+  function decimals() public view returns (uint256) {
+    return 0;
+  }
+
+  function isERC821() public view returns (bool) {
+    return true;
+  }
+
   //
   // Asset-centric getter functions
   //
@@ -46,10 +54,20 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry, EIP820Im
     return _holderOf[assetId];
   }
 
+  function ownerOf(uint256 assetId) public view returns (address) {
+    // It's OK to be inefficient here, as this method is for compatibility.
+    // Users should call `holderOf`
+    return holderOf(assetId);
+  }
+
   function safeHolderOf(uint256 assetId) public view returns (address) {
     address holder = _holderOf[assetId];
     require(holder != 0);
     return holder;
+  }
+
+  function safeOwnerOf(uint256 assetId) public view returns (address) {
+    return safeHolderOf(assetId);
   }
 
   function assetData(uint256 assetId) public view returns (string) {
@@ -69,6 +87,10 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry, EIP820Im
     return _assetsOf[holder].length;
   }
 
+  function balanceOf(address holder) public view returns (uint256) {
+    return assetCount(holder);
+  }
+
   function assetByIndex(address holder, uint256 index) public view returns (uint256) {
     require(index < _assetsOf[holder].length);
     require(index < (1<<127));
@@ -83,21 +105,48 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry, EIP820Im
   // Authorization getters
   //
 
-  function isOperatorAuthorizedFor(address operator, address assetHolder)
+  function isOperatorAuthorizedBy(address operator, address assetHolder)
     public view returns (bool)
   {
     return _operators[assetHolder][operator];
   }
 
+  function approvedFor(uint256 assetId) public view returns (address) {
+    return _approval[assetId];
+  }
+
+  function isApprovedFor(address operator, uint256 assetId)
+    public view returns (bool)
+  {
+    require(operator != 0);
+    if (operator == holderOf(assetId)) {
+      return true;
+    }
+    return _approval[assetId] == operator;
+  }
+
+  //
+  // Authorization
+  //
+
   function authorizeOperator(address operator, bool authorized) public {
     if (authorized) {
-      require(!isOperatorAuthorizedFor(operator, msg.sender));
+      require(!isOperatorAuthorizedBy(operator, msg.sender));
       _addAuthorization(operator, msg.sender);
     } else {
-      require(isOperatorAuthorizedFor(operator, msg.sender));
+      require(isOperatorAuthorizedBy(operator, msg.sender));
       _clearAuthorization(operator, msg.sender);
     }
     AuthorizeOperator(operator, msg.sender, authorized);
+  }
+
+  function approve(address operator, uint256 assetId) public {
+    address holder = holderOf(assetId);
+    require(operator != holder);
+    if (approvedFor(assetId) != operator) {
+      _approval[assetId] = operator;
+      Approve(holder, operator, assetId);
+    }
   }
 
   function _addAuthorization(address operator, address holder) private {
@@ -156,6 +205,13 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry, EIP820Im
     _count = _count.sub(1);
   }
 
+  function _clearApproval(address holder, uint256 assetId) internal {
+    if (holderOf(assetId) == holder && _approval[assetId] != 0) {
+      _approval[assetId] = 0;
+      Approve(holder, 0, assetId);
+    }
+  }
+
   function _removeAssetData(uint256 assetId) internal {
     _assetData[assetId] = '';
   }
@@ -192,8 +248,11 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry, EIP820Im
   }
 
   modifier onlyOperatorOrHolder(uint256 assetId) {
-    require(_holderOf[assetId] == msg.sender
-         || isOperatorAuthorizedFor(msg.sender, _holderOf[assetId]));
+    require(
+      _holderOf[assetId] == msg.sender
+      || isOperatorAuthorizedBy(msg.sender, _holderOf[assetId])
+      || isApprovedFor(msg.sender, assetId)
+    );
     _;
   }
 
@@ -238,6 +297,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry, EIP820Im
   {
     address holder = _holderOf[assetId];
     _removeAssetFrom(holder, assetId);
+    _clearApproval(holder, assetId);
     _addAssetTo(to, assetId);
 
     if (_isContract(to)) {

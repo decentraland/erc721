@@ -41,4 +41,14 @@ contract AssetRegistryStorage {
    * Simple reentrancy lock
    */
   bool internal _reentrancy;
+
+  /**
+   * Complex reentrancy lock
+   */
+  uint256 internal _reentrancyCount;
+
+  /**
+   * Approval array
+   */
+  mapping(uint256 => address) internal _approval;
 }

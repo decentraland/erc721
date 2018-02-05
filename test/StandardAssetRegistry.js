@@ -523,7 +523,7 @@ contract('StandardAssetRegistry', accounts => {
     it('is authorized', async () => {
       const authorized = true
       await registry.authorizeOperator(user, authorized)
-      const isAuthorized = await registry.isOperatorAuthorizedFor(user, creator)
+      const isAuthorized = await registry.isOperatorAuthorizedBy(user, creator)
       isAuthorized.should.equal(authorized)
     })
 
@@ -537,12 +537,12 @@ contract('StandardAssetRegistry', accounts => {
     it('is not authorized after setting the operator as false', async () => {
       await registry.authorizeOperator(user, true)
       await registry.authorizeOperator(user, false)
-      const isAuthorized = await registry.isOperatorAuthorizedFor(user, creator)
+      const isAuthorized = await registry.isOperatorAuthorizedBy(user, creator)
       isAuthorized.should.equal(false)
     })
 
     it('is not authorized even if the holder is not set as operator', async () => {
-      const isAuthorized = await registry.isOperatorAuthorizedFor(
+      const isAuthorized = await registry.isOperatorAuthorizedBy(
         creator,
         creator
       )
@@ -550,7 +550,7 @@ contract('StandardAssetRegistry', accounts => {
     })
 
     it('is not authorized', async () => {
-      const isAuthorized = await registry.isOperatorAuthorizedFor(creator, user)
+      const isAuthorized = await registry.isOperatorAuthorizedBy(creator, user)
       isAuthorized.should.equal(false)
     })
 
