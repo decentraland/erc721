@@ -35,6 +35,13 @@ function checkAuthorizationLog(log, operator, holder, authorized) {
   log.args.authorized.should.be.equal(authorized)
 }
 
+function checkApproveLog(log, owner, operator, assetId) {
+  log.event.should.be.eq('Approve')
+  log.args.owner.should.be.equal(owner)
+  log.args.operator.should.be.equal(operator)
+  log.args.assetId.should.be.bignumber.equal(assetId)
+}
+
 function checkUpdateLog(log, assetId, holder, operator) {
   log.event.should.be.eq('Update')
   log.args.assetId.should.be.bignumber.equal(assetId)
@@ -569,7 +576,7 @@ contract('StandardAssetRegistry', accounts => {
     })
   })
 
-  describe('authorizations getters', () => {
+  describe('authorization', () => {
     it('is authorized', async () => {
       const authorized = true
       await registry.authorizeOperator(user, authorized)
@@ -620,6 +627,37 @@ contract('StandardAssetRegistry', accounts => {
       await registry.authorizeOperator(user, authorized)
       await registry.authorizeOperator(user, !authorized)
       await assertRevert(registry.authorizeOperator(user, !authorized))
+    })
+
+    it('approvedFor should return approved address', async () => {
+      await registry.approve(operator, 1)
+      const approvedAddress = await registry.approvedFor(1)
+      approvedAddress.should.be.equal(operator)
+    })
+
+    it('should approve single asset for an operator', async () => {
+      await registry.approve(operator, 0)
+
+      const approved = await registry.isApprovedFor(operator, 0)
+      approved.should.be.true
+
+      const notapproved = await registry.isApprovedFor(operator, 1)
+      notapproved.should.be.false
+    })
+
+    it('approve should throw if holder = operator', async () => {
+      await assertRevert(registry.approve(creator, 0))
+    })
+
+    it('approve emits Approve event', async () => {
+      const assetId = new BigNumber(1)
+      const { logs } = await registry.approve(operator, assetId)
+      logs.length.should.be.equal(1)
+      checkApproveLog(logs[0], creator, operator, assetId)
+    })
+
+    it('isApprovedFor should throw if operator is 0', async () => {
+      await assertRevert(registry.isApprovedFor(0, 0))
     })
   })
 
