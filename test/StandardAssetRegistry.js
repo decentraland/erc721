@@ -126,6 +126,13 @@ contract('StandardAssetRegistry', accounts => {
         totalSupply.should.be.bignumber.equal(3)
       })
     })
+
+    describe('decimals', () => {
+      it('returns 0', async () => {
+        const decimals = await registry.decimals()
+        decimals.should.be.bignumber.equal(0)
+      })
+    })
   })
 
   describe('exists', () => {
@@ -162,6 +169,35 @@ contract('StandardAssetRegistry', accounts => {
     })
   })
 
+  describe('ownerOf', () => {
+    it('should match the holder of the asset', async () => {
+      const one = creator
+      const two = NONE
+      const outputOne = await registry.ownerOf(1)
+      const outputTwo = await registry.ownerOf(2)
+      outputOne.should.be.equal(one)
+      outputTwo.should.be.equal(two)
+    })
+    it('throws if not valid id', async () => {
+      return Promise.all([registry.ownerOf(true).should.be.rejected])
+    })
+    it('throws if id is not provided', async () => {
+      return Promise.all([registry.ownerOf().should.be.rejected])
+    })
+  })
+
+  describe('safeHolderOf', () => {
+    it('reverts if no holder for the asset', async () => {
+      await assertRevert(registry.safeHolderOf(100))
+    })
+  })
+
+  describe('safeOwnerOf', () => {
+    it('reverts if no owner for the asset', async () => {
+      await assertRevert(registry.safeOwnerOf(100))
+    })
+  })
+
   describe('assetData', async () => {
     it('should returns the proper data', async () => {
       const output = await registry.assetData(0)
@@ -191,7 +227,7 @@ contract('StandardAssetRegistry', accounts => {
       return Promise.all([registry.safeAssetData().should.be.rejected])
     })
     it('reverts for a nonexistent assetId', async () => {
-      await assertRevert(registry.safeAssetData(10));
+      await assertRevert(registry.safeAssetData(10))
     })
   })
 
