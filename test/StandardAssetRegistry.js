@@ -196,6 +196,12 @@ contract('StandardAssetRegistry', accounts => {
     it('reverts if no owner for the asset', async () => {
       await assertRevert(registry.safeOwnerOf(100))
     })
+
+    it('should be an alias of safeHolderOf', async () => {
+      const safeOwnerOf = await registry.safeOwnerOf(0)
+      const safeHolderOf = await registry.safeHolderOf(0)
+      safeOwnerOf.should.be.bignumber.equal(safeHolderOf)
+    })
   })
 
   describe('assetData', async () => {
@@ -252,6 +258,14 @@ contract('StandardAssetRegistry', accounts => {
     it('should return 0 for a nonexistent address', async () => {
       const assetCount = await registry.assetCount(NONE)
       assetCount.should.be.bignumber.equal(0)
+    })
+  })
+
+  describe('balanceOf', () => {
+    it('should be an alias of assetCount', async () => {
+      const assetCount = await registry.assetCount(creator)
+      const balanceOf = await registry.balanceOf(creator)
+      assetCount.should.be.bignumber.equal(balanceOf)
     })
   })
 
