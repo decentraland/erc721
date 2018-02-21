@@ -1,7 +1,5 @@
 import assertRevert, { assertError } from './helpers/assertRevert'
 
-import getEIP820 from './helpers/getEIP820'
-
 const BigNumber = web3.BigNumber
 
 const StandardAssetRegistry = artifacts.require('StandardAssetRegistryTest')
@@ -68,7 +66,6 @@ const expect = require('chai').expect
 contract('StandardAssetRegistry', accounts => {
   const [creator, user, anotherUser, operator, mallory] = accounts
   let registry = null
-  let EIP820 = null
   const _name = 'Test'
   const _symbol = 'TEST'
   const _description = 'lorem ipsum'
@@ -84,7 +81,6 @@ contract('StandardAssetRegistry', accounts => {
 
   beforeEach(async () => {
     registry = await StandardAssetRegistry.new(creationParams)
-    EIP820 = await getEIP820(creator)
     await registry.generate(0, creator)
     await registry.generate(1, creator)
   })
