@@ -66,9 +66,6 @@ const expect = require('chai').expect
 contract('StandardAssetRegistry', accounts => {
   const [creator, user, anotherUser, operator, mallory] = accounts
   let registry = null
-  const _name = 'Test'
-  const _symbol = 'TEST'
-  const _description = 'lorem ipsum'
   const _firstAssetlId = 1
   const alternativeAsset = { id: 2, data: 'data2' }
   const sentByCreator = { from: creator }
@@ -86,27 +83,6 @@ contract('StandardAssetRegistry', accounts => {
   })
 
   describe('Global Setters', () => {
-    describe('name', () => {
-      it('has a name', async () => {
-        const name = await registry.name()
-        name.should.be.equal(_name)
-      })
-    })
-
-    describe('symbol', () => {
-      it('has a symbol', async () => {
-        const symbol = await registry.symbol()
-        symbol.should.be.equal(_symbol)
-      })
-    })
-
-    describe('description', () => {
-      it('has a description', async () => {
-        const description = await registry.description()
-        description.should.be.equal(_description)
-      })
-    })
-
     describe('totalSupply', () => {
       it('has a total supply equivalent to the inital supply', async () => {
         const totalSupply = await registry.totalSupply()

@@ -20,9 +20,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
   bytes4 public erc165Interface = bytes4(keccak256('supportsInterface(bytes4)'));
 
   bytes4 public interfaceID = bytes4(
-    keccak256('name()') ^
-    keccak256('symbol()') ^
-    keccak256('description()') ^
+    keccak256('totalSupply()') ^
     keccak256('exists(uint256)') ^
     keccak256('ownerOf(uint256)') ^
     keccak256('balanceOf(address)') ^
@@ -43,30 +41,6 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
   //
   // Global Getters
   //
-
-  /**
-   * @dev Name of this Distinguished Asset Registry (DAR).
-   * @return string name of this contract
-   */
-  function name() public view returns (string) {
-    return _name;
-  }
-
-  /**
-   * @dev Symbol to identify this DAR against others
-   * @return string symbol of the DAR
-   */
-  function symbol() public view returns (string) {
-    return _symbol;
-  }
-
-  /**
-   * @dev Gets a human-readable description of the asset
-   * @return string description of the asset
-   */
-  function description() public view returns (string) {
-    return _description;
-  }
 
   /**
    * @dev Gets the total amount of assets stored by the contract

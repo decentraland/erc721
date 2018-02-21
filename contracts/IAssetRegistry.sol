@@ -1,9 +1,7 @@
 pragma solidity ^0.4.18;
 
 interface IAssetRegistry {
-  function name() public view returns (string);
-  function symbol() public view returns (string);
-  function description() public view returns (string);
+  function totalSupply() public view returns (uint256);
 
   function exists(uint256 assetId) public view returns (bool);
   function ownerOf(uint256 assetId) public view returns (address);
