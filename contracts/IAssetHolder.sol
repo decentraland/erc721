@@ -6,8 +6,6 @@ interface IAssetHolder {
     uint256 _assetId,
     address _previousHolder,
     address _currentHolder,
-    bytes   _userData,
-    address _operator,
-    bytes   _operatorData
+    bytes   _userData
   ) public;
 }

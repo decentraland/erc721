@@ -31,13 +31,13 @@ contract('Exchange', accounts => {
   beforeEach(async () => {
     registry = await StandardAssetRegistry.new(creationParams)
     exchange = await Exchange.new(registry.address)
-    await registry.generate(0, creator, CONTENT_DATA, sentByCreator)
-    await registry.generate(1, creator, CONTENT_DATA, sentByCreator)
+    await registry.generate(0, creator, sentByCreator)
+    await registry.generate(1, creator, sentByCreator)
   })
 
   describe('Exchange operations', () => {
     it('buys an specific asset', async () => {
-      await registry.authorizeOperator(exchange.address, true)
+      await registry.approveAll(exchange.address, true)
       await exchange.sell(0, 100, sentByCreator)
       await exchange.buy(0, { ...sentByUser, value: 100 })
       const assets = await registry.assetsOf(user)
@@ -47,12 +47,12 @@ contract('Exchange', accounts => {
 
     it('refunds remaining balance', async () => {
       const originalBalance = web3.eth.getBalance(user)
-      await registry.authorizeOperator(exchange.address, true)
+      await registry.approveAll(exchange.address, true)
       await exchange.sell(0, web3.toWei(10, 'ether'), sentByCreator)
       await exchange.buy(0, { ...sentByUser, value: web3.toWei(20, 'ether') })
       const currentBalance = web3.eth.getBalance(user);
       const diff = originalBalance.toNumber() - currentBalance.toNumber()
-      Math.round(web3.fromWei(diff, 'ether')).should.equal(10) // round down the gas      
+      Math.round(web3.fromWei(diff, 'ether')).should.equal(10) // round down the gas
     })
 
     it('reverts when buying without authorization', async () => {
@@ -67,14 +67,14 @@ contract('Exchange', accounts => {
     it('reverts when buying an asset not on sale', async () => {
       await assertRevert(exchange.buy(2))
     })
-    
+
     it('reverts when trying to buy with insufficient funds', async () => {
       await exchange.sell(0, 100, sentByCreator)
       await assertRevert(exchange.buy(0, { ...sentByUser, value: 50 }))
     })
 
     it('reverts when transferring an asset to himself', async () => {
-      await registry.authorizeOperator(exchange.address, true)
+      await registry.approveAll(exchange.address, true)
       await exchange.sell(1, 1, sentByCreator)
       await assertRevert(exchange.buy(1, { ...sentByCreator, value: 1 }))
     })
