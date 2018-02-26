@@ -27,6 +27,11 @@ contract AssetRegistryStorage {
   mapping(uint256 => uint256) internal _indexOfAsset;
 
   /**
+   * Stores the data associated with an asset
+   */
+  mapping(unit256 => string) internal _assetData;
+
+  /**
    * For a given account, for a given operator, store whether that operator is
    * allowed to transfer and modify assets on behalf of them.
    */

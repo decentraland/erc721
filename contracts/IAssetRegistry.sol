@@ -28,12 +28,12 @@ interface IERC821Base {
     address operator,
     bytes userData
   );
-  event ApprovedAll(
+  event ApprovalForAll(
     address indexed operator,
     address indexed holder,
     bool authorized
   );
-  event Approve(
+  event Approval(
     address indexed owner,
     address indexed operator,
     uint256 indexed assetId
