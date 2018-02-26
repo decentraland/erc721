@@ -20,12 +20,13 @@ contract Exchange {
   function buy(uint256 assetId) payable public {
     require(msg.value >= _orders[assetId]);
     require(_orders[assetId] > 0);
-    nonFungible.ownerOf(assetId).transfer(_orders[assetId]);
+    address owner = nonFungible.ownerOf(assetId);
+    owner.transfer(_orders[assetId]);
     uint remaining = msg.value - _orders[assetId];
     if (remaining > 0) {
      msg.sender.transfer(remaining);
     }
-    nonFungible.transfer(msg.sender, assetId, '', '');
+    nonFungible.transferFrom(owner, msg.sender, assetId, '');
   }
 }
 

@@ -1,19 +1,19 @@
-#pragma solidity ^0.4.18;
+pragma solidity ^0.4.18;
 
-import IMetadataRegistry from './IMetadataRegistry';
-import AssetRegistryStorage from './AssetRegistryStorage';
+import './IMetadataRegistry.sol';
+import './AssetRegistryStorage.sol';
 
 contract MetadataRegistry is AssetRegistryStorage, IMetadataRegistry {
-  function name() {
+  function name() public view returns (string) {
     return _name;
   }
-  function symbol() {
+  function symbol() public view returns (string) {
     return _symbol;
   }
-  function description() {
+  function description() public view returns (string) {
     return _description;
   }
-  function tokenMetadata(uint256 assetId) {
-    return _assetData[asssetdId];
+  function tokenMetadata(uint256 assetId) public view returns (string) {
+    return _assetData[assetId];
   }
 }

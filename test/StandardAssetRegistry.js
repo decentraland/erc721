@@ -27,14 +27,14 @@ function checkTransferLog(
 }
 
 function checkAuthorizationLog(log, operator, holder, authorized) {
-  log.event.should.be.eq('AuthorizeOperator')
+  log.event.should.be.eq('ApprovalForAll')
   log.args.operator.should.be.bignumber.equal(operator)
   log.args.holder.should.be.equal(holder)
   log.args.authorized.should.be.equal(authorized)
 }
 
 function checkApproveLog(log, owner, operator, assetId) {
-  log.event.should.be.eq('Approve')
+  log.event.should.be.eq('Approval')
   log.args.owner.should.be.equal(owner)
   log.args.operator.should.be.equal(operator)
   log.args.assetId.should.be.bignumber.equal(assetId)
@@ -226,10 +226,10 @@ contract('StandardAssetRegistry', accounts => {
     })
   })
 
-  describe('transfer', () => {
+  describe('transferFrom', () => {
     it('ensures the asset is passed to another owner after transfer', async () => {
       await registry.generate(3, creator, { from: creator })
-      await registry.transfer(anotherUser, 3)
+      await registry.transferFrom(creator, anotherUser, 3)
       const newOwner = await registry.ownerOf(3)
       newOwner.should.be.equal(anotherUser)
     })
@@ -237,38 +237,38 @@ contract('StandardAssetRegistry', accounts => {
       await registry.generate(4, anotherUser, {
         from: anotherUser
       })
-      await assertRevert(registry.transfer(operator, 4))
+      await assertRevert(registry.transferFrom(creator, operator, 4))
     })
     it("after receiving an asset, the receiver can't transfer the sender's other assets", async () => {
       await registry.generate(5, creator, { from: creator })
-      await registry.transfer(user, 5)
-      await assertRevert(registry.transfer(anotherUser, 5))
-      await assertRevert(registry.transfer(operator, 5))
-      await assertRevert(registry.transfer(mallory, 5))
+      await registry.transferFrom(creator, user, 5)
+      await assertRevert(registry.transfer(creator, anotherUser, 5))
+      await assertRevert(registry.transfer(creator, operator, 5))
+      await assertRevert(registry.transfer(creator, mallory, 5))
       const newOwner = await registry.ownerOf(5)
       newOwner.should.be.equal(user)
     })
     it('throws if no arguments are sent', async () => {
-      assertError(registry.transfer())
+      assertError(registry.transferFrom())
     })
     it('throws if asset is missing', async () => {
-      assertError(registry.transfer(anotherUser))
+      assertError(registry.transferFrom(anotherUser))
     })
     it('throws if asset is to transfer is missing', async () => {
-      assertError(registry.transfer(null, 1))
+      assertError(registry.transferFrom(null, 1))
     })
     const clear = ''
     it('works only if operator', async () => {
       await registry.generate(7, anotherUser, { from: creator })
-      await registry.approveAll(creator, true, { from: anotherUser })
-      await registry.transferTo(user, 7, clear, clear, {
+      await registry.setApprovalForAll(creator, true, { from: anotherUser })
+      await registry.transferFrom(user, 7, clear, {
         from: creator
       })
     })
     it('reverts when trying to transfer and To address is the same as the holder address', async () => {
       await registry.generate(7, anotherUser, { from: creator })
       await assertRevert(
-        registry.transferTo(anotherUser, 7, clear, clear, {
+        registry.transferFrom(anotherUser, anotherUser, 7, clear, {
           from: anotherUser
         })
       )
@@ -276,14 +276,14 @@ contract('StandardAssetRegistry', accounts => {
     it('reverts if receiver is null', async () => {
       await registry.generate(8, creator, { from: creator })
       await assertRevert(
-        registry.transferTo(NONE, 8, clear, clear, { from: creator })
+        registry.transferFrom(creator, NONE, 8, clear, { from: creator })
       )
     })
   })
   describe('transferFrom', () => {
     it('ensures the asset is owned by from', async () => {
       await registry.generate(3, creator, { from: creator })
-      await registry.transfer(anotherUser, 3)
+      await registry.transferFrom(creator, anotherUser, 3)
       const newOwner = await registry.ownerOf(3)
       newOwner.should.be.equal(anotherUser)
     })
@@ -303,7 +303,7 @@ contract('StandardAssetRegistry', accounts => {
     it('holder receives the token', async () => {
       const asset = 102
       await registry.generate(asset, creator, { from: creator })
-      await registry.transferTo(holder.address, asset, USER_DATA, OP_DATA, {
+      await registry.transferFrom(creator, holder.address, asset, USER_DATA, OP_DATA, {
         from: creator
       })
       const newOwner = await registry.ownerOf(asset)
@@ -313,7 +313,8 @@ contract('StandardAssetRegistry', accounts => {
     it('event is created', async () => {
       const asset = 101
       await registry.generate(asset, creator, { from: creator })
-      const { logs } = await registry.transferTo(
+      const { logs } = await registry.transferFrom(
+        creator,
         holder.address,
         asset,
         USER_DATA,
@@ -335,7 +336,7 @@ contract('StandardAssetRegistry', accounts => {
       const asset = 100
       await registry.generate(asset, creator, { from: creator })
       await assertRevert(
-        registry.transferTo(nonHolder.address, asset, USER_DATA, OP_DATA, {
+        registry.transferFrom(creator, nonHolder.address, asset, USER_DATA, OP_DATA, {
           from: creator
         })
       )
@@ -431,27 +432,27 @@ contract('StandardAssetRegistry', accounts => {
   describe('authorization', () => {
     it('is authorized', async () => {
       const authorized = true
-      await registry.approveAll(user, authorized)
-      const isAuthorized = await registry.isAuthorizedBy(user, creator)
+      await registry.setApprovalForAll(user, authorized)
+      const isAuthorized = await registry.isApprovedForAll(user, creator)
       isAuthorized.should.equal(authorized)
     })
 
     it('emits AuthorizeOperator events', async () => {
       const authorized = true
-      const { logs } = await registry.approveAll(user, authorized)
+      const { logs } = await registry.setApprovalForAll(user, authorized)
       logs.length.should.be.equal(1)
       checkAuthorizationLog(logs[0], user, creator, authorized)
     })
 
     it('is not authorized after setting the operator as false', async () => {
-      await registry.approveAll(user, true)
-      await registry.approveAll(user, false)
-      const isAuthorized = await registry.isAuthorizedBy(user, creator)
+      await registry.setApprovalForAll(user, true)
+      await registry.setApprovalForAll(user, false)
+      const isAuthorized = await registry.isApprovedForAll(user, creator)
       isAuthorized.should.equal(false)
     })
 
     it('is not authorized even if the holder is not set as operator', async () => {
-      const isAuthorized = await registry.isAuthorizedBy(
+      const isAuthorized = await registry.isApprovedForAll(
         creator,
         creator
       )
@@ -459,26 +460,26 @@ contract('StandardAssetRegistry', accounts => {
     })
 
     it('is not authorized', async () => {
-      const isAuthorized = await registry.isAuthorizedBy(creator, user)
+      const isAuthorized = await registry.isApprovedForAll(creator, user)
       isAuthorized.should.equal(false)
     })
 
     it('reverts when removing a un-existing operator', async () => {
       const authorized = false
-      await assertRevert(registry.approveAll(user, authorized))
+      await assertRevert(registry.setApprovalForAll(user, authorized))
     })
 
     it('reverts when trying to add an existing operator', async () => {
       const authorized = true
-      await registry.approveAll(user, authorized)
-      await assertRevert(registry.approveAll(user, authorized))
+      await registry.setApprovalForAll(user, authorized)
+      await assertRevert(registry.setApprovalForAll(user, authorized))
     })
 
     it('reverts when removing a previous removed operator', async () => {
       const authorized = true
-      await registry.approveAll(user, authorized)
-      await registry.approveAll(user, !authorized)
-      await assertRevert(registry.approveAll(user, !authorized))
+      await registry.setApprovalForAll(user, authorized)
+      await registry.setApprovalForAll(user, !authorized)
+      await assertRevert(registry.setApprovalForAll(user, !authorized))
     })
 
     it('approvedFor should return approved address', async () => {
@@ -490,10 +491,10 @@ contract('StandardAssetRegistry', accounts => {
     it('should approve single asset for an operator', async () => {
       await registry.approve(operator, 0)
 
-      const approved = await registry.isApprovedFor(operator, 0)
+      const approved = await registry.isAuthorized(operator, 0)
       approved.should.be.true
 
-      const notapproved = await registry.isApprovedFor(operator, 1)
+      const notapproved = await registry.isAuthorized(operator, 1)
       notapproved.should.be.false
     })
 
@@ -508,8 +509,8 @@ contract('StandardAssetRegistry', accounts => {
       checkApproveLog(logs[0], creator, operator, assetId)
     })
 
-    it('isApprovedFor should throw if operator is 0', async () => {
-      await assertRevert(registry.isApprovedFor(0, 0))
+    it('isAuthorized should throw if operator is 0', async () => {
+      await assertRevert(registry.isAuthorized(0, 0))
     })
   })
 
@@ -520,11 +521,6 @@ contract('StandardAssetRegistry', accounts => {
     })
     it('supports 821 interface', async () => {
       const result = await registry.supportsInterface(0x43647280)
-      result.should.be.true
-    })
-    it('Holder supports IAssetHolder interface', async () => {
-      const holder = await Holder.new({ from: creator })
-      const result = await holder.supportsInterface(0xbd2631cd)
       result.should.be.true
     })
   })

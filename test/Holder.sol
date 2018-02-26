@@ -1,10 +1,10 @@
 pragma solidity ^0.4.18;
 
-import '../contracts/AssetHolder.sol';
+import '../contracts/INFTHolder.sol';
 
-contract Holder is AssetHolder {
+contract Holder is INFTHolder {
 
-  function onAssetReceived(uint256, address, address, bytes) public {
+  function onNFTReceived(uint256, address, bytes) public {
     return /* 📨 */;
   }
 }

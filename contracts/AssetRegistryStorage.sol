@@ -29,7 +29,7 @@ contract AssetRegistryStorage {
   /**
    * Stores the data associated with an asset
    */
-  mapping(unit256 => string) internal _assetData;
+  mapping(uint256 => string) internal _assetData;
 
   /**
    * For a given account, for a given operator, store whether that operator is

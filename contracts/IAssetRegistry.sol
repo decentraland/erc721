@@ -17,7 +17,7 @@ interface IERC821Base {
   function approve(address operator, uint256 assetId) public;
 
   function isApprovedForAll(address operator, address assetOwner) public view returns (bool);
-  function getApprovedAddress(uint256 assetId) public;
+  function getApprovedAddress(uint256 assetId) public view returns (address);
 
   function isAuthorized(address operator, uint256 assetId) public view returns (bool);
 

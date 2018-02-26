@@ -21,9 +21,4 @@ contract StandardAssetRegistryTest is StandardAssetRegistry {
   function destroy(uint256 assetId) public {
     _destroy(assetId);
   }
-  function transferTo(
-    address to, uint256 assetId, bytes userData, bytes operatorData
-  ) public {
-    return transfer(to, assetId, userData, operatorData);
-  }
 }

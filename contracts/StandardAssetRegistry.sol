@@ -9,10 +9,10 @@ import './IAssetRegistry.sol';
 import './INFTHolder.sol';
 
 interface ERC165 {
-  function supportsInterface(bytes4 interfaceID) external view returns (bool);
+  function supportsInterface(bytes4 interfaceID) public view returns (bool);
 }
 
-contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
+contract StandardAssetRegistry is AssetRegistryStorage, IERC821Base {
   using SafeMath for uint256;
 
   bytes4 public erc165Interface = bytes4(keccak256('supportsInterface(bytes4)'));
@@ -26,10 +26,10 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
     keccak256('transferFrom(address,address,uint256)') ^
     keccak256('transferFrom(address,address,uint256,bytes)') ^
     keccak256('approve(address,uint256)') ^
-    keccak256('getApprovedAddress(uint256)')
+    keccak256('getApprovedAddress(uint256)') ^
     keccak256('setApprovalForAll(address,bool)') ^
     keccak256('isApprovedForAll(address,address)') ^
-    keccak256('isAuthorized(address,uint256)') ^
+    keccak256('isAuthorized(address,uint256)')
   );
 
   //
@@ -116,7 +116,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
     if (operator == owner) {
       return true;
     }
-    return isAuthorizedBy(operator, owner) || approvedFor(assetId) == operator;
+    return isApprovedForAll(operator, owner) || getApprovedAddress(assetId) == operator;
   }
 
   //
@@ -136,7 +136,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
       require(isApprovedForAll(operator, msg.sender));
       _clearAuthorization(operator, msg.sender);
     }
-    AuthorizeOperator(operator, msg.sender, authorized);
+    ApprovalForAll(operator, msg.sender, authorized);
   }
 
   /**
@@ -149,7 +149,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
     require(operator != holder);
     if (getApprovedAddress(assetId) != operator) {
       _approval[assetId] = operator;
-      Approve(holder, operator, assetId);
+      Approval(holder, operator, assetId);
     }
   }
 
@@ -206,7 +206,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
   function _clearApproval(address holder, uint256 assetId) internal {
     if (ownerOf(assetId) == holder && _approval[assetId] != 0) {
       _approval[assetId] = 0;
-      Approve(holder, 0, assetId);
+      Approval(holder, 0, assetId);
     }
   }
 
@@ -263,10 +263,9 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
    * @param from address that currently owns an asset
    * @param to address to receive the ownership of the asset
    * @param assetId uint256 ID of the asset to be transferred
-   * @param userData bytes arbitrary user information to attach to this transfer
    */
   function reassignTo(address from, address to, uint256 assetId) public {
-    return _doTransferFrom(from, to, assetId, userData, msg.sender, false);
+    return _doTransferFrom(from, to, assetId, '', msg.sender, false);
   }
 
   /**
@@ -299,7 +298,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
     address to,
     uint256 assetId,
     bytes userData,
-    address operator
+    address operator,
     bool doCheck
   )
     isDestinataryDefined(to)
@@ -324,16 +323,16 @@ contract StandardAssetRegistry is AssetRegistryStorage, IAssetRegistry {
 
   /**
    * @dev Returns `true` if the contract implements `interfaceID` and `interfaceID` is not 0xffffffff, `false` otherwise
-   * @param  interfaceID The interface identifier, as specified in ERC-165
+   * @param  _interfaceID The interface identifier, as specified in ERC-165
    */
-  function supportsInterface(bytes4 interfaceID) external view returns (bool) {
-    if (interfaceID == 0xffffffff) {
+  function supportsInterface(bytes4 _interfaceID) public view returns (bool) {
+    if (_interfaceID == 0xffffffff) {
       return false;
     }
-    if (interfaceID == interfaceID) {
+    if (_interfaceID == interfaceID) {
       return true;
     }
-    if (interfaceID == erc165Interface) {
+    if (_interfaceID == erc165Interface) {
       return true;
     }
     return false;
