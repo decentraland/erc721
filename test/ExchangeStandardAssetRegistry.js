@@ -37,17 +37,16 @@ contract('Exchange', accounts => {
 
   describe('Exchange operations', () => {
     it('buys an specific asset', async () => {
-      await registry.approveAll(exchange.address, true)
+      await registry.setApprovalForAll(exchange.address, true)
       await exchange.sell(0, 100, sentByCreator)
       await exchange.buy(0, { ...sentByUser, value: 100 })
-      const assets = await registry.assetsOf(user)
-      const convertedAssets = assets.map(big => big.toString())
-      convertedAssets.should.have.all.members(['0'])
+      const assets = await registry.balanceOf(user)
+      assets.should.equal(10) // round down the gas
     })
 
     it('refunds remaining balance', async () => {
       const originalBalance = web3.eth.getBalance(user)
-      await registry.approveAll(exchange.address, true)
+      await registry.setApprovalForAll(exchange.address, true)
       await exchange.sell(0, web3.toWei(10, 'ether'), sentByCreator)
       await exchange.buy(0, { ...sentByUser, value: web3.toWei(20, 'ether') })
       const currentBalance = web3.eth.getBalance(user);
@@ -74,7 +73,7 @@ contract('Exchange', accounts => {
     })
 
     it('reverts when transferring an asset to himself', async () => {
-      await registry.approveAll(exchange.address, true)
+      await registry.setApprovalForAll(exchange.address, true)
       await exchange.sell(1, 1, sentByCreator)
       await assertRevert(exchange.buy(1, { ...sentByCreator, value: 1 }))
     })
