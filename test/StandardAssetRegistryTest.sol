@@ -1,8 +1,8 @@
 pragma solidity ^0.4.18;
 
-import '../contracts/StandardAssetRegistry.sol';
+import '../contracts/FullAssetRegistry.sol';
 
-contract StandardAssetRegistryTest is StandardAssetRegistry {
+contract StandardAssetRegistryTest is FullAssetRegistry {
 
   function StandardAssetRegistryTest () public {
     _name = "Test";
@@ -20,5 +20,10 @@ contract StandardAssetRegistryTest is StandardAssetRegistry {
 
   function destroy(uint256 assetId) public {
     _destroy(assetId);
+  }
+
+  // Problematic override on truffle
+  function safeTransfer(address from, address to, uint256 assetId, bytes data) public {
+    return safeTransferFrom(from, to, assetId, data);
   }
 }

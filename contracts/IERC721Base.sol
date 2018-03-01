@@ -1,25 +1,25 @@
 pragma solidity ^0.4.18;
 
-interface IERC821Base {
+interface IERC721Base {
   function totalSupply() public view returns (uint256);
 
-  function exists(uint256 assetId) public view returns (bool);
+  // function exists(uint256 assetId) public view returns (bool);
   function ownerOf(uint256 assetId) public view returns (address);
 
   function balanceOf(address holder) public view returns (uint256);
 
-  function reassignTo(address from, address to, uint256 assetId) public;
+  function safeTransferFrom(address from, address to, uint256 assetId) public;
+  function safeTransferFrom(address from, address to, uint256 assetId, bytes userData) public;
 
   function transferFrom(address from, address to, uint256 assetId) public;
-  function transferFrom(address from, address to, uint256 assetId, bytes userData) public;
 
-  function setApprovalForAll(address operator, bool authorized) public;
   function approve(address operator, uint256 assetId) public;
+  function setApprovalForAll(address operator, bool authorized) public;
 
-  function isApprovedForAll(address operator, address assetOwner) public view returns (bool);
   function getApprovedAddress(uint256 assetId) public view returns (address);
+  function isApprovedForAll(address operator, address assetOwner) public view returns (bool);
 
-  function isAuthorized(address operator, uint256 assetId) public view returns (bool);
+  // function isAuthorized(address operator, uint256 assetId) public view returns (bool);
 
   event Transfer(
     address indexed from,

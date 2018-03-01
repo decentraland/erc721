@@ -1,10 +1,10 @@
 pragma solidity ^0.4.18;
 
-import '../contracts/INFTHolder.sol';
+import '../contracts/IERC721Receiver.sol';
 
-contract Holder is INFTHolder {
+contract Holder is IERC721Receiver {
 
-  function onNFTReceived(uint256, address, bytes) public {
+  function onERC721Received(uint256, address, bytes) public {
     return /* 📨 */;
   }
 }

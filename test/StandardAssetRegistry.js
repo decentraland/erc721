@@ -1,4 +1,3 @@
-import assertRevert, { assertError } from './helpers/assertRevert'
 
 const BigNumber = web3.BigNumber
 
@@ -95,7 +94,7 @@ contract('StandardAssetRegistry', accounts => {
       })
     })
 
-    describe.skip('decimals', () => {
+    describe('decimals', () => {
       it('returns 0', async () => {
         const decimals = await registry.decimals()
         decimals.should.be.bignumber.equal(0)
@@ -161,31 +160,7 @@ contract('StandardAssetRegistry', accounts => {
     })
   })
 
-  describe('balanceOf', () => {
-    it('has an amount of assets equivalent to the created assets', async () => {
-      const balanceOf = await registry.balanceOf(creator)
-      balanceOf.should.be.bignumber.equal(2)
-    })
-
-    it('has an amount of assets equivalent to the amount sent to the beneficiary', async () => {
-      await registry.generate(3, user, sentByCreator)
-      const balanceOf = await registry.balanceOf(user)
-      balanceOf.should.be.bignumber.equal(1)
-    })
-
-    it('should consider destroyed assets', async () => {
-      await registry.destroy(1)
-      const balanceOf = await registry.balanceOf(creator)
-      balanceOf.should.be.bignumber.equal(1)
-    })
-
-    it('should return 0 for a nonexistent address', async () => {
-      const balanceOf = await registry.balanceOf(NONE)
-      balanceOf.should.be.bignumber.equal(0)
-    })
-  })
-
-  describe.skip('tokenOfOwnerByIndex', () => {
+  describe('tokenOfOwnerByIndex', () => {
     it('returns the id for the first asset of the holder', async () => {
       const assets = await registry.tokenOfOwnerByIndex(creator, 0)
       assets.should.be.bignumber.equal(0)
@@ -204,21 +179,21 @@ contract('StandardAssetRegistry', accounts => {
     })
   })
 
-  describe.skip('assetsOf', () => {
+  describe('tokensOf', () => {
     it('returns the created assets', async () => {
-      const assets = await registry.assetsOf(creator)
+      const assets = await registry.tokensOf(creator)
       const convertedAssets = assets.map(big => big.toString())
       convertedAssets.should.have.all.members(['0', '1'])
     })
 
     it('returns an empty array for an address with no assets', async () => {
-      const assets = await registry.assetsOf(user)
+      const assets = await registry.tokensOf(user)
       const convertedAssets = assets.map(big => big.toString())
       convertedAssets.should.have.all.members([])
     })
 
     it('returns an empty array for a nonexistent address', async () => {
-      const assets = await registry.assetsOf(NONE)
+      const assets = await registry.tokensOf(NONE)
       const convertedAssets = assets.map(big => big.toString())
       convertedAssets.should.have.all.members([])
     })
@@ -259,14 +234,14 @@ contract('StandardAssetRegistry', accounts => {
     it('works only if operator', async () => {
       await registry.generate(7, anotherUser, { from: creator })
       await registry.setApprovalForAll(creator, true, { from: anotherUser })
-      await registry.transferFrom(user, 7, clear, {
+      await registry.transferFrom(anotherUser, user, 7, {
         from: creator
       })
     })
     it('reverts when trying to transfer and To address is the same as the holder address', async () => {
       await registry.generate(7, anotherUser, { from: creator })
       await assertRevert(
-        registry.transferFrom(anotherUser, anotherUser, 7, clear, {
+        registry.transferFrom(anotherUser, anotherUser, 7, {
           from: anotherUser
         })
       )
@@ -274,7 +249,7 @@ contract('StandardAssetRegistry', accounts => {
     it('reverts if receiver is null', async () => {
       await registry.generate(8, creator, { from: creator })
       await assertRevert(
-        registry.transferFrom(creator, NONE, 8, clear, { from: creator })
+        registry.transferFrom(creator, NONE, 8, { from: creator })
       )
     })
   })
@@ -301,7 +276,7 @@ contract('StandardAssetRegistry', accounts => {
     it('holder receives the token', async () => {
       const asset = 102
       await registry.generate(asset, creator, { from: creator })
-      await registry.transferFrom(creator, holder.address, asset, USER_DATA, OP_DATA, {
+      await registry.safeTransfer(creator, holder.address, asset, USER_DATA, {
         from: creator
       })
       const newOwner = await registry.ownerOf(asset)
@@ -311,12 +286,11 @@ contract('StandardAssetRegistry', accounts => {
     it('event is created', async () => {
       const asset = 101
       await registry.generate(asset, creator, { from: creator })
-      const { logs } = await registry.transferFrom(
+      const { logs } = await registry.safeTransfer(
         creator,
         holder.address,
         asset,
         USER_DATA,
-        OP_DATA,
         { from: creator }
       )
       checkTransferLog(
@@ -325,8 +299,7 @@ contract('StandardAssetRegistry', accounts => {
         creator,
         holder.address,
         creator,
-        '0x' + new Buffer(USER_DATA).toString('hex'),
-        '0x' + new Buffer(OP_DATA).toString('hex')
+        '0x' + new Buffer(USER_DATA).toString('hex')
       )
     })
 
@@ -334,7 +307,7 @@ contract('StandardAssetRegistry', accounts => {
       const asset = 100
       await registry.generate(asset, creator, { from: creator })
       await assertRevert(
-        registry.transferFrom(creator, nonHolder.address, asset, USER_DATA, OP_DATA, {
+        registry.safeTransfer(creator, nonHolder.address, asset, USER_DATA, {
           from: creator
         })
       )
@@ -514,11 +487,11 @@ contract('StandardAssetRegistry', accounts => {
 
   describe('eip165 interfaces', () => {
     it('supports 165 interface', async () => {
-      const result = await registry.supportsInterface(0x01ffc9a7)
+      const result = await registry.supportsInterface('0x01ffc9a7')
       result.should.be.true
     })
     it('supports 821 interface', async () => {
-      const result = await registry.supportsInterface(0x1e3e6294)
+      const result = await registry.supportsInterface(0x7c0633c6)
       result.should.be.true
     })
   })

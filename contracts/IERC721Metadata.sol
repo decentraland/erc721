@@ -1,6 +1,6 @@
 pragma solidity ^0.4.18;
 
-contract IMetadataRegistry {
+contract IERC721Metadata {
 
   /**
    * @notice A descriptive name for a collection of NFTs in this contract

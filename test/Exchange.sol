@@ -26,7 +26,7 @@ contract Exchange {
     if (remaining > 0) {
      msg.sender.transfer(remaining);
     }
-    nonFungible.transferFrom(owner, msg.sender, assetId, '');
+    nonFungible.safeTransferFrom(owner, msg.sender, assetId);
   }
 }
 

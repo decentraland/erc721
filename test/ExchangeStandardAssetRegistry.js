@@ -41,7 +41,7 @@ contract('Exchange', accounts => {
       await exchange.sell(0, 100, sentByCreator)
       await exchange.buy(0, { ...sentByUser, value: 100 })
       const assets = await registry.balanceOf(user)
-      assets.should.equal(10) // round down the gas
+      assets.should.be.bignumber.equal(1)
     })
 
     it('refunds remaining balance', async () => {

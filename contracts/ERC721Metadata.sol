@@ -1,9 +1,9 @@
 pragma solidity ^0.4.18;
 
-import './IMetadataRegistry.sol';
+import './IERC721Metadata.sol';
 import './AssetRegistryStorage.sol';
 
-contract MetadataRegistry is AssetRegistryStorage, IMetadataRegistry {
+contract ERC721Metadata is AssetRegistryStorage, IERC721Metadata {
   function name() public view returns (string) {
     return _name;
   }

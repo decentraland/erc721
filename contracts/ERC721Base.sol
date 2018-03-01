@@ -4,33 +4,16 @@ import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
 import './AssetRegistryStorage.sol';
 
-import './IAssetRegistry.sol';
+import './IERC721Base.sol';
 
-import './INFTHolder.sol';
+import './IERC721Receiver.sol';
 
 interface ERC165 {
   function supportsInterface(bytes4 interfaceID) public view returns (bool);
 }
 
-contract StandardAssetRegistry is AssetRegistryStorage, IERC821Base {
+contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
   using SafeMath for uint256;
-
-  bytes4 public erc165Interface = bytes4(keccak256('supportsInterface(bytes4)'));
-
-  bytes4 public interfaceID = bytes4(
-    keccak256('totalSupply()') ^
-    keccak256('exists(uint256)') ^
-    keccak256('ownerOf(uint256)') ^
-    keccak256('balanceOf(address)') ^
-    keccak256('reassignTo(address,address,uint256)') ^
-    keccak256('transferFrom(address,address,uint256)') ^
-    keccak256('transferFrom(address,address,uint256,bytes)') ^
-    keccak256('approve(address,uint256)') ^
-    keccak256('getApprovedAddress(uint256)') ^
-    keccak256('setApprovalForAll(address,bool)') ^
-    keccak256('isApprovedForAll(address,address)') ^
-    keccak256('isAuthorized(address,uint256)')
-  );
 
   //
   // Global Getters
@@ -47,13 +30,6 @@ contract StandardAssetRegistry is AssetRegistryStorage, IERC821Base {
   //
   // Asset-centric getter functions
   //
-  /**
-   * @dev Method to check if an asset identified by the given id exists under this DAR.
-   * @return uint256 the assetId
-   */
-  function exists(uint256 assetId) public view returns (bool) {
-    return _holderOf[assetId] != 0;
-  }
 
   /**
    * @dev Queries what address owns an asset. This method does not throw.
@@ -245,6 +221,11 @@ contract StandardAssetRegistry is AssetRegistryStorage, IERC821Base {
     _;
   }
 
+  modifier isCurrentOwner(address from, uint256 assetId) {
+    require(_holderOf[assetId] == from);
+    _;
+  }
+
   modifier isDestinataryDefined(address destinatary) {
     require(destinatary != 0);
     _;
@@ -256,16 +237,14 @@ contract StandardAssetRegistry is AssetRegistryStorage, IERC821Base {
   }
 
   /**
-   * @dev Transfers the ownership of a given asset from one address to another address
-   * Warning! This function does not attempt to verify that the target address can send
-   * tokens.
+   * @dev Alias of `safeTransferFrom(from, to, assetId, '')`
    *
    * @param from address that currently owns an asset
    * @param to address to receive the ownership of the asset
    * @param assetId uint256 ID of the asset to be transferred
    */
-  function reassignTo(address from, address to, uint256 assetId) public {
-    return _doTransferFrom(from, to, assetId, '', msg.sender, false);
+  function safeTransferFrom(address from, address to, uint256 assetId) public {
+    return _doTransferFrom(from, to, assetId, '', msg.sender, true);
   }
 
   /**
@@ -273,24 +252,26 @@ contract StandardAssetRegistry is AssetRegistryStorage, IERC821Base {
    * another address, calling the method `onNFTReceived` on the target address if
    * there's code associated with it
    *
-   * @param from address sending the asset
+   * @param from address that currently owns an asset
    * @param to address to receive the ownership of the asset
    * @param assetId uint256 ID of the asset to be transferred
    * @param userData bytes arbitrary user information to attach to this transfer
    */
-  function transferFrom(address from, address to, uint256 assetId, bytes userData) public {
+  function safeTransferFrom(address from, address to, uint256 assetId, bytes userData) public {
     return _doTransferFrom(from, to, assetId, userData, msg.sender, true);
   }
 
   /**
-   * @dev Alias for transferFrom(from, to, assetId, EMPTY_BYTES)
+   * @dev Transfers the ownership of a given asset from one address to another address
+   * Warning! This function does not attempt to verify that the target address can send
+   * tokens.
    *
    * @param from address sending the asset
    * @param to address to receive the ownership of the asset
    * @param assetId uint256 ID of the asset to be transferred
    */
   function transferFrom(address from, address to, uint256 assetId) public {
-    return _doTransferFrom(from, to, assetId, '', msg.sender, true);
+    return _doTransferFrom(from, to, assetId, '', msg.sender, false);
   }
 
   function _doTransferFrom(
@@ -303,6 +284,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IERC821Base {
   )
     isDestinataryDefined(to)
     destinataryIsNotHolder(assetId, to)
+    isCurrentOwner(from, assetId)
     onlyAuthorized(assetId)
     internal
   {
@@ -312,7 +294,7 @@ contract StandardAssetRegistry is AssetRegistryStorage, IERC821Base {
     _addAssetTo(to, assetId);
 
     if (doCheck && _isContract(to)) {
-      INFTHolder(to).onNFTReceived.gas(50000)(
+      IERC721Receiver(to).onERC721Received.gas(50000)(
         assetId, holder, userData
       );
     }
@@ -320,22 +302,16 @@ contract StandardAssetRegistry is AssetRegistryStorage, IERC821Base {
     Transfer(holder, to, assetId, operator, userData);
   }
 
-
   /**
    * @dev Returns `true` if the contract implements `interfaceID` and `interfaceID` is not 0xffffffff, `false` otherwise
    * @param  _interfaceID The interface identifier, as specified in ERC-165
    */
   function supportsInterface(bytes4 _interfaceID) public view returns (bool) {
+
     if (_interfaceID == 0xffffffff) {
       return false;
     }
-    if (_interfaceID == interfaceID) {
-      return true;
-    }
-    if (_interfaceID == erc165Interface) {
-      return true;
-    }
-    return false;
+    return _interfaceID == 0x01ffc9a7 || _interfaceID == 0x7c0633c6;
   }
 
   //
