@@ -16,4 +16,7 @@ contract ERC721Metadata is AssetRegistryStorage, IERC721Metadata {
   function tokenMetadata(uint256 assetId) public view returns (string) {
     return _assetData[assetId];
   }
+  function _update(uint256 assetId, string data) internal {
+    _assetData[assetId] = data;
+  }
 }
