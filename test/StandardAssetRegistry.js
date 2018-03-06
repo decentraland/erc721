@@ -1,3 +1,4 @@
+import assertRevert from './helpers/assertRevert'
 
 const BigNumber = web3.BigNumber
 
@@ -175,7 +176,7 @@ contract('StandardAssetRegistry', accounts => {
     })
 
     it('fails for a nonexistent address', async () => {
-      await assertError(registry.tokenOfOwnerByIndex(NONE, 0))
+      await assertRevert(registry.tokenOfOwnerByIndex(NONE, 0))
     })
   })
 
@@ -222,13 +223,13 @@ contract('StandardAssetRegistry', accounts => {
       newOwner.should.be.equal(user)
     })
     it('throws if no arguments are sent', async () => {
-      assertError(registry.transferFrom())
+      return Promise.all([registry.transferFrom().should.be.rejected])
     })
     it('throws if asset is missing', async () => {
-      assertError(registry.transferFrom(anotherUser))
+      return Promise.all([registry.transferFrom(anotherUser).should.be.rejected])
     })
     it('throws if asset is to transfer is missing', async () => {
-      assertError(registry.transferFrom(null, 1))
+      return Promise.all([registry.transferFrom(null, 1).should.be.rejected])
     })
     const clear = ''
     it('works only if operator', async () => {
