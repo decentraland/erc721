@@ -19,7 +19,7 @@ interface IERC721Base {
   function getApprovedAddress(uint256 assetId) public view returns (address);
   function isApprovedForAll(address operator, address assetOwner) public view returns (bool);
 
-  // function isAuthorized(address operator, uint256 assetId) public view returns (bool);
+  function isAuthorized(address operator, uint256 assetId) public view returns (bool);
 
   event Transfer(
     address indexed from,
