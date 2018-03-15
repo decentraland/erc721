@@ -1,10 +1,12 @@
-# ERC 821
+# ERC 721 (formerly 821)
 
-![Build Status](https://circleci.com/gh/decentraland/erc821.png)
+![Build Status](https://circleci.com/gh/decentraland/erc721.png)
 
-Contracts for the standard implementation of the ERC821
+Contracts for the standard implementation of the ERC721
 
-Full spec: https://github.com/ethereum/EIPs/issues/821
+Full spec: https://github.com/ethereum/EIPs/issues/721
+
+Formerly known as 821  https://github.com/ethereum/EIPs/issues/821
 
 ## License
 
