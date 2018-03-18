@@ -1,5 +1,5 @@
 import assertRevert from './helpers/assertRevert'
-
+import { assertError } from './helpers/assertRevert'
 const BigNumber = web3.BigNumber
 
 const StandardAssetRegistry = artifacts.require('StandardAssetRegistryTest')
