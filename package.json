@@ -1,7 +1,7 @@
 {
   "name": "erc821",
-  "version": "1.0.1",
-  "description": "Contract for ERC 821",
+  "version": "2.0.0",
+  "description": "Contract for ERC 821 (now 721)",
   "scripts": {
     "test": "scripts/test.sh",
     "test:watch": "nodemon test/** contracts/** --exec 'npm test'",
