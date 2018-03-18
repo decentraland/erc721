@@ -294,8 +294,12 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
     _addAssetTo(to, assetId);
 
     if (doCheck && _isContract(to)) {
-      IERC721Receiver(to).onERC721Received.gas(50000)(
-        assetId, holder, userData
+      // Equals to bytes4(keccak256("onERC721Received(address,uint256,bytes)"))
+      bytes4 ERC721_RECEIVED = bytes4(0xf0b9e5ba);
+      require(
+        IERC721Receiver(to).onERC721Received(
+          assetId, holder, userData
+        ) == ERC721_RECEIVED
       );
     }
 

@@ -1,10 +1,6 @@
 pragma solidity ^0.4.18;
 
-import '../contracts/IERC721Receiver.sol';
+import '../contracts/ERC721Holder.sol';
 
-contract Holder is IERC721Receiver {
-
-  function onERC721Received(uint256, address, bytes) public {
-    return /* 📨 */;
-  }
+contract Holder is ERC721Holder {
 }
