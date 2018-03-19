@@ -10,4 +10,4 @@ Formerly known as 821  https://github.com/ethereum/EIPs/issues/821
 
 ## License
 
-Code released under [the Apache v2.0 license](https://github.com/decentraland/land/blob/master/LICENSE).
+Code released under [the Apache v2.0 license](https://www.apache.org/licenses/LICENSE-2.0).
