@@ -8,9 +8,7 @@ import './IERC721Base.sol';
 
 import './IERC721Receiver.sol';
 
-interface ERC165 {
-  function supportsInterface(bytes4 interfaceID) public view returns (bool);
-}
+import './ERC165.sol';
 
 contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
   using SafeMath for uint256;
@@ -84,8 +82,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * @param assetId the asset that has been `approved` for transfer
    * @return bool true if the asset has been approved by the holder
    */
-  function isAuthorized(address operator, uint256 assetId)
-    public view returns (bool)
+  function isAuthorized(address operator, uint256 assetId) public view returns (bool)
   {
     require(operator != 0);
     address owner = ownerOf(assetId);
@@ -112,7 +109,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
       require(isApprovedForAll(operator, msg.sender));
       _clearAuthorization(operator, msg.sender);
     }
-    ApprovalForAll(operator, msg.sender, authorized);
+    emit ApprovalForAll(operator, msg.sender, authorized);
   }
 
   /**
@@ -125,7 +122,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
     require(operator != holder);
     if (getApprovedAddress(assetId) != operator) {
       _approval[assetId] = operator;
-      Approval(holder, operator, assetId);
+      emit Approval(holder, operator, assetId);
     }
   }
 
@@ -182,7 +179,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
   function _clearApproval(address holder, uint256 assetId) internal {
     if (ownerOf(assetId) == holder && _approval[assetId] != 0) {
       _approval[assetId] = 0;
-      Approval(holder, 0, assetId);
+      emit Approval(holder, 0, assetId);
     }
   }
 
@@ -195,7 +192,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
 
     _addAssetTo(beneficiary, assetId);
 
-    Transfer(0, beneficiary, assetId, msg.sender, '');
+    emit Transfer(0, beneficiary, assetId, msg.sender, '');
   }
 
   function _destroy(uint256 assetId) internal {
@@ -204,7 +201,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
 
     _removeAssetFrom(holder, assetId);
 
-    Transfer(holder, 0, assetId, msg.sender, '');
+    emit Transfer(holder, 0, assetId, msg.sender, '');
   }
 
   //
@@ -303,14 +300,14 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
       );
     }
 
-    Transfer(holder, to, assetId, operator, userData);
+    emit Transfer(holder, to, assetId, operator, userData);
   }
 
   /**
    * @dev Returns `true` if the contract implements `interfaceID` and `interfaceID` is not 0xffffffff, `false` otherwise
    * @param  _interfaceID The interface identifier, as specified in ERC-165
    */
-  function supportsInterface(bytes4 _interfaceID) public view returns (bool) {
+  function supportsInterface(bytes4 _interfaceID) external view returns (bool) {
 
     if (_interfaceID == 0xffffffff) {
       return false;
