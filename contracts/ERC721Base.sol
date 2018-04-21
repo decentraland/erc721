@@ -279,10 +279,23 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
     address operator,
     bool doCheck
   )
+    onlyAuthorized(assetId)
+    internal
+  {
+    _moveToken(from, to, assetId, userData, operator, doCheck);
+  }
+
+  function _moveToken(
+    address from,
+    address to,
+    uint256 assetId,
+    bytes userData,
+    address operator,
+    bool doCheck
+  )
     isDestinataryDefined(to)
     destinataryIsNotHolder(assetId, to)
     isCurrentOwner(from, assetId)
-    onlyAuthorized(assetId)
     internal
   {
     address holder = _holderOf[assetId];
@@ -302,6 +315,10 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
 
     emit Transfer(holder, to, assetId, operator, userData);
   }
+
+  /**
+   * Internal function that moves an asset from one holder to another
+   */
 
   /**
    * @dev Returns `true` if the contract implements `interfaceID` and `interfaceID` is not 0xffffffff, `false` otherwise
