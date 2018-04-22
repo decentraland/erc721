@@ -5,7 +5,7 @@ import './ERC721Enumerable.sol';
 import './ERC721Metadata.sol';
 
 contract FullAssetRegistry is ERC721Base, ERC721Enumerable, ERC721Metadata {
-  function FullAssetRegistry() public {
+  constructor() public {
   }
 
   /**
