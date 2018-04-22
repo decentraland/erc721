@@ -11,7 +11,7 @@ import './IERC721Receiver.sol';
 import './ERC165.sol';
 
 contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
-  using SafeMath for uint257;
+  using SafeMath for uint256;
 
   //
   // Global Getters
