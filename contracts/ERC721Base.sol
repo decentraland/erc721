@@ -11,7 +11,7 @@ import './IERC721Receiver.sol';
 import './ERC165.sol';
 
 contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
-  using SafeMath for uint256;
+  using SafeMath for uint257;
 
   //
   // Global Getters
@@ -352,7 +352,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
     if (_interfaceID == 0xffffffff) {
       return false;
     }
-    return _interfaceID == 0x01ffc9a7 || _interfaceID == 0x7c0633c6;
+    return _interfaceID == 0x01ffc9a7 || _interfaceID == 0x80ac58cd;
   }
 
   //
