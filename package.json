@@ -1,6 +1,6 @@
 {
   "name": "erc821",
-  "version": "3.2.3",
+  "version": "3.2.4",
   "description": "Contract for ERC 821 (now 721)",
   "scripts": {
     "test": "scripts/test.sh",
@@ -23,7 +23,7 @@
     "zeppelin-solidity": "1.8.0"
   },
   "devDependencies": {
-    "babel-eslint": "^8.2.1",
+    "babel-eslint": "^8.2.3",
     "babel-polyfill": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
@@ -39,7 +39,7 @@
     "mocha": "^3.5.3",
     "npx": "^9.7.1",
     "pre-commit": "^1.2.2",
-    "prettier": "^1.11.1",
+    "prettier": "^1.12.1",
     "solidity-sha3": "^0.4.1",
     "truffle": "^4.1.7",
     "truffle-flattener": "^1.2.4",

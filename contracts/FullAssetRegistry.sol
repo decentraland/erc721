@@ -13,6 +13,9 @@ contract FullAssetRegistry is ERC721Base, ERC721Enumerable, ERC721Metadata {
    * @return uint256 the assetId
    */
   function exists(uint256 assetId) external view returns (bool) {
+    return _exists(assetId);
+  }
+  function _exists(uint256 assetId) internal view returns (bool) {
     return _holderOf[assetId] != 0;
   }
 
