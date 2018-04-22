@@ -24,6 +24,6 @@ contract StandardAssetRegistryTest is FullAssetRegistry {
 
   // Problematic override on truffle
   function safeTransfer(address from, address to, uint256 assetId, bytes data) public {
-    return safeTransferFrom(from, to, assetId, data);
+    return _doTransferFrom(from, to, assetId, data, msg.sender, true);
   }
 }

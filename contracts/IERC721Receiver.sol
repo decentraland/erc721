@@ -5,5 +5,5 @@ interface IERC721Receiver {
     address _oldOwner,
     uint256 _tokenId,
     bytes   _userData
-  ) public returns (bytes4);
+  ) external returns (bytes4);
 }

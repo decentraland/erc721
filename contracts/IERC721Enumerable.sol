@@ -35,7 +35,7 @@ contract IERC721Enumerable {
    * @param owner address of the owner to query
    * @return a list of all assetIds of a user
    */
-  function tokensOf(address owner) public view returns (uint256[]);
+  function tokensOf(address owner) external view returns (uint256[]);
 
   /**
    * @notice Enumerate tokens assigned to an owner
@@ -49,5 +49,5 @@ contract IERC721Enumerable {
    */
   function tokenOfOwnerByIndex(
     address owner, uint256 index
-  ) public view returns (uint256 tokenId);
+  ) external view returns (uint256 tokenId);
 }

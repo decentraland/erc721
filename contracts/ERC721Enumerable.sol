@@ -11,7 +11,7 @@ contract ERC721Enumerable is AssetRegistryStorage, IERC721Enumerable {
    * @param owner address of the owner to query
    * @return a list of all assetIds of a user
    */
-  function tokensOf(address owner) public view returns (uint256[]) {
+  function tokensOf(address owner) external view returns (uint256[]) {
     return _assetsOf[owner];
   }
 
@@ -27,7 +27,10 @@ contract ERC721Enumerable is AssetRegistryStorage, IERC721Enumerable {
    */
   function tokenOfOwnerByIndex(
     address owner, uint256 index
-    ) public view returns (uint256 assetId)
+  )
+    external
+    view
+    returns (uint256 assetId)
   {
     require(index < _assetsOf[owner].length);
     require(index < (1<<127));

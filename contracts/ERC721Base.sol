@@ -21,7 +21,10 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * @dev Gets the total amount of assets stored by the contract
    * @return uint256 representing the total amount of assets
    */
-  function totalSupply() public view returns (uint256) {
+  function totalSupply() external view returns (uint256) {
+    return _totalSupply();
+  }
+  function _totalSupply() internal view returns (uint256) {
     return _count;
   }
 
@@ -35,7 +38,10 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * return value of this call is `0`.
    * @return uint256 the assetId
    */
-  function ownerOf(uint256 assetId) public view returns (address) {
+  function ownerOf(uint256 assetId) external view returns (address) {
+    return _ownerOf(assetId);
+  }
+  function _ownerOf(uint256 assetId) internal view returns (address) {
     return _holderOf[assetId];
   }
 
@@ -47,7 +53,10 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * @param owner address to query the balance of
    * @return uint256 representing the amount owned by the passed address
    */
-  function balanceOf(address owner) public view returns (uint256) {
+  function balanceOf(address owner) external view returns (uint256) {
+    return _balanceOf(owner);
+  }
+  function _balanceOf(address owner) internal view returns (uint256) {
     return _assetsOf[owner].length;
   }
 
@@ -62,7 +71,12 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * @return bool true if the operator has been authorized to move any assets
    */
   function isApprovedForAll(address operator, address assetHolder)
-    public view returns (bool)
+    external view returns (bool)
+  {
+    return _isApprovedForAll(operator, assetHolder);
+  }
+  function _isApprovedForAll(address operator, address assetHolder)
+    internal view returns (bool)
   {
     return _operators[assetHolder][operator];
   }
@@ -72,7 +86,10 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * @param assetId the asset to be queried for
    * @return bool true if the asset has been approved by the holder
    */
-  function getApprovedAddress(uint256 assetId) public view returns (address) {
+  function getApprovedAddress(uint256 assetId) external view returns (address) {
+    return _getApprovedAddress(assetId);
+  }
+  function _getApprovedAddress(uint256 assetId) internal view returns (address) {
     return _approval[assetId];
   }
 
@@ -82,14 +99,17 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * @param assetId the asset that has been `approved` for transfer
    * @return bool true if the asset has been approved by the holder
    */
-  function isAuthorized(address operator, uint256 assetId) public view returns (bool)
+  function isAuthorized(address operator, uint256 assetId) external view returns (bool) {
+    return _isAuthorized(operator, assetId);
+  }
+  function _isAuthorized(address operator, uint256 assetId) internal view returns (bool)
   {
     require(operator != 0);
-    address owner = ownerOf(assetId);
+    address owner = _ownerOf(assetId);
     if (operator == owner) {
       return true;
     }
-    return isApprovedForAll(operator, owner) || getApprovedAddress(assetId) == operator;
+    return _isApprovedForAll(operator, owner) || _getApprovedAddress(assetId) == operator;
   }
 
   //
@@ -101,12 +121,15 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * @param operator address to be approved
    * @param authorized bool set to true to authorize, false to withdraw authorization
    */
-  function setApprovalForAll(address operator, bool authorized) public {
+  function setApprovalForAll(address operator, bool authorized) external {
+    return _setApprovalForAll(operator, authorized);
+  }
+  function _setApprovalForAll(address operator, bool authorized) internal {
     if (authorized) {
-      require(!isApprovedForAll(operator, msg.sender));
+      require(!_isApprovedForAll(operator, msg.sender));
       _addAuthorization(operator, msg.sender);
     } else {
-      require(isApprovedForAll(operator, msg.sender));
+      require(_isApprovedForAll(operator, msg.sender));
       _clearAuthorization(operator, msg.sender);
     }
     emit ApprovalForAll(operator, msg.sender, authorized);
@@ -117,10 +140,10 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * @param operator address to be approved
    * @param assetId asset to approve
    */
-  function approve(address operator, uint256 assetId) public {
-    address holder = ownerOf(assetId);
+  function approve(address operator, uint256 assetId) external {
+    address holder = _ownerOf(assetId);
     require(operator != holder);
-    if (getApprovedAddress(assetId) != operator) {
+    if (_getApprovedAddress(assetId) != operator) {
       _approval[assetId] = operator;
       emit Approval(holder, operator, assetId);
     }
@@ -141,7 +164,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
   function _addAssetTo(address to, uint256 assetId) internal {
     _holderOf[assetId] = to;
 
-    uint256 length = balanceOf(to);
+    uint256 length = _balanceOf(to);
 
     _assetsOf[to].push(assetId);
 
@@ -152,7 +175,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
 
   function _removeAssetFrom(address from, uint256 assetId) internal {
     uint256 assetIndex = _indexOfAsset[assetId];
-    uint256 lastAssetIndex = balanceOf(from).sub(1);
+    uint256 lastAssetIndex = _balanceOf(from).sub(1);
     uint256 lastAssetId = _assetsOf[from][lastAssetIndex];
 
     _holderOf[assetId] = 0;
@@ -177,7 +200,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
   }
 
   function _clearApproval(address holder, uint256 assetId) internal {
-    if (ownerOf(assetId) == holder && _approval[assetId] != 0) {
+    if (_ownerOf(assetId) == holder && _approval[assetId] != 0) {
       _approval[assetId] = 0;
       emit Approval(holder, 0, assetId);
     }
@@ -209,17 +232,17 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
   //
 
   modifier onlyHolder(uint256 assetId) {
-    require(_holderOf[assetId] == msg.sender);
+    require(_ownerOf(assetId) == msg.sender);
     _;
   }
 
   modifier onlyAuthorized(uint256 assetId) {
-    require(isAuthorized(msg.sender, assetId));
+    require(_isAuthorized(msg.sender, assetId));
     _;
   }
 
   modifier isCurrentOwner(address from, uint256 assetId) {
-    require(_holderOf[assetId] == from);
+    require(_ownerOf(assetId) == from);
     _;
   }
 
@@ -229,7 +252,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
   }
 
   modifier destinataryIsNotHolder(uint256 assetId, address to) {
-    require(_holderOf[assetId] != to);
+    require(_ownerOf(assetId) != to);
     _;
   }
 
@@ -240,7 +263,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * @param to address to receive the ownership of the asset
    * @param assetId uint256 ID of the asset to be transferred
    */
-  function safeTransferFrom(address from, address to, uint256 assetId) public {
+  function safeTransferFrom(address from, address to, uint256 assetId) external {
     return _doTransferFrom(from, to, assetId, '', msg.sender, true);
   }
 
@@ -254,7 +277,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * @param assetId uint256 ID of the asset to be transferred
    * @param userData bytes arbitrary user information to attach to this transfer
    */
-  function safeTransferFrom(address from, address to, uint256 assetId, bytes userData) public {
+  function safeTransferFrom(address from, address to, uint256 assetId, bytes userData) external {
     return _doTransferFrom(from, to, assetId, userData, msg.sender, true);
   }
 
@@ -267,7 +290,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * @param to address to receive the ownership of the asset
    * @param assetId uint256 ID of the asset to be transferred
    */
-  function transferFrom(address from, address to, uint256 assetId) public {
+  function transferFrom(address from, address to, uint256 assetId) external {
     return _doTransferFrom(from, to, assetId, '', msg.sender, false);
   }
 
