@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/decentraland/erc821#readme",
   "dependencies": {
-    "zeppelin-solidity": "1.8.0"
+    "openzeppelin-solidity": "^1.9.0"
   },
   "devDependencies": {
     "babel-eslint": "^8.2.3",
