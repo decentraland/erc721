@@ -429,6 +429,10 @@ contract('StandardAssetRegistry', accounts => {
       approvedAddress.should.be.equal(operator)
     })
 
+    it('should throw if user trying to approve is not holder', async () => {
+      await assertRevert(registry.approve(mallory, 0, { from: anotherUser }))
+    })
+
     it('should approve single asset for an operator', async () => {
       await registry.approve(operator, 0)
 
@@ -437,6 +441,13 @@ contract('StandardAssetRegistry', accounts => {
 
       const notapproved = await registry.isAuthorized(operator, 1)
       notapproved.should.be.false
+    })
+
+    it('should approve single asset for an operator if given authorization', async () => {
+      await registry.setApprovalForAll(anotherUser, true, { from: creator })
+      await registry.approve(operator, 0, { from: anotherUser })
+      const approved = await registry.isAuthorized(operator, 0)
+      approved.should.be.true
     })
 
     it('approve should throw if holder = operator', async () => {
