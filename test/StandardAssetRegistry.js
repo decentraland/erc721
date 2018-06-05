@@ -8,14 +8,7 @@ const NonHolder = artifacts.require('NonHolder')
 
 const NONE = '0x0000000000000000000000000000000000000000'
 
-function checkTransferLog(
-  log,
-  assetId,
-  from,
-  to,
-  operator,
-  userData
-) {
+function checkTransferLog(log, assetId, from, to, operator, userData) {
   log.event.should.be.eq('Transfer')
   log.args.assetId.should.be.bignumber.equal(assetId)
   log.args.from.should.be.equal(from)
@@ -226,7 +219,9 @@ contract('StandardAssetRegistry', accounts => {
       return Promise.all([registry.transferFrom().should.be.rejected])
     })
     it('throws if asset is missing', async () => {
-      return Promise.all([registry.transferFrom(anotherUser).should.be.rejected])
+      return Promise.all([
+        registry.transferFrom(anotherUser).should.be.rejected
+      ])
     })
     it('throws if asset is to transfer is missing', async () => {
       return Promise.all([registry.transferFrom(null, 1).should.be.rejected])
@@ -262,7 +257,6 @@ contract('StandardAssetRegistry', accounts => {
       newOwner.should.be.equal(anotherUser)
     })
   })
-
 
   describe('transfer security', () => {
     const USER_DATA = 'user'
@@ -300,7 +294,7 @@ contract('StandardAssetRegistry', accounts => {
         creator,
         holder.address,
         creator,
-        '0x' + new Buffer(USER_DATA).toString('hex')
+        '0x' + Buffer.from(USER_DATA).toString('hex')
       )
     })
 
@@ -316,7 +310,6 @@ contract('StandardAssetRegistry', accounts => {
   })
 
   describe('generate', () => {
-
     it('emits a Create event', async () => {
       const { logs } = await registry.generate(
         alternativeAsset.id,
@@ -324,31 +317,18 @@ contract('StandardAssetRegistry', accounts => {
         sentByUser
       )
       logs.length.should.be.equal(1)
-      checkCreateLog(
-        logs[0],
-        user,
-        alternativeAsset.id,
-        user
-      )
+      checkCreateLog(logs[0], user, alternativeAsset.id, user)
     })
 
     it('fails if the assetId is already in use', async () => {
-      await registry.generate(
-        alternativeAsset.id,
-        user,
-        sentByUser
-      )
+      await registry.generate(alternativeAsset.id, user, sentByUser)
       await assertRevert(
         registry.generate(alternativeAsset.id, user, sentByUser)
       )
     })
 
     it('generates an asset to a beneficiary account', async () => {
-      await registry.generate(
-        alternativeAsset.id,
-        anotherUser,
-        sentByUser
-      )
+      await registry.generate(alternativeAsset.id, anotherUser, sentByUser)
       const assetOwner = await registry.ownerOf(alternativeAsset.id)
       assetOwner.should.be.equal(anotherUser)
     })
@@ -356,11 +336,7 @@ contract('StandardAssetRegistry', accounts => {
 
   describe('destroy', () => {
     it('destroys an asset created', async () => {
-      await registry.generate(
-        alternativeAsset.id,
-        creator,
-        sentByCreator
-      )
+      await registry.generate(alternativeAsset.id, creator, sentByCreator)
       let exist = await registry.exists(alternativeAsset.id)
       exist.should.be.true
       await registry.destroy(alternativeAsset.id)
@@ -369,11 +345,7 @@ contract('StandardAssetRegistry', accounts => {
     })
 
     it('emits a Transfer(0) event', async () => {
-      await registry.generate(
-        alternativeAsset.id,
-        creator,
-        sentByCreator
-      )
+      await registry.generate(alternativeAsset.id, creator, sentByCreator)
       const { logs } = await registry.destroy(alternativeAsset.id)
       logs.length.should.be.equal(1)
       checkDestroyLog(logs[0], creator, alternativeAsset.id, creator)
@@ -424,10 +396,7 @@ contract('StandardAssetRegistry', accounts => {
     })
 
     it('is not authorized even if the holder is not set as operator', async () => {
-      const isAuthorized = await registry.isApprovedForAll(
-        creator,
-        creator
-      )
+      const isAuthorized = await registry.isApprovedForAll(creator, creator)
       isAuthorized.should.equal(false)
     })
 
@@ -496,5 +465,4 @@ contract('StandardAssetRegistry', accounts => {
       result.should.be.true
     })
   })
-
 })
