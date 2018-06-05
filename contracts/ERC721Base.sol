@@ -142,7 +142,9 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    */
   function approve(address operator, uint256 assetId) external {
     address holder = _ownerOf(assetId);
+    require(msg.sender == holder || _isApprovedForAll(msg.sender, holder));
     require(operator != holder);
+
     if (_getApprovedAddress(assetId) != operator) {
       _approval[assetId] = operator;
       emit Approval(holder, operator, assetId);
