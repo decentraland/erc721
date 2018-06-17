@@ -377,7 +377,7 @@ contract('StandardAssetRegistry', accounts => {
     it('is authorized', async () => {
       const authorized = true
       await registry.setApprovalForAll(user, authorized)
-      const isAuthorized = await registry.isApprovedForAll(user, creator)
+      const isAuthorized = await registry.isApprovedForAll(creator, user)
       isAuthorized.should.equal(authorized)
     })
 
@@ -385,13 +385,13 @@ contract('StandardAssetRegistry', accounts => {
       const authorized = true
       const { logs } = await registry.setApprovalForAll(user, authorized)
       logs.length.should.be.equal(1)
-      checkAuthorizationLog(logs[0], user, creator, authorized)
+      checkAuthorizationLog(logs[0], creator, user, authorized)
     })
 
     it('is not authorized after setting the operator as false', async () => {
       await registry.setApprovalForAll(user, true)
       await registry.setApprovalForAll(user, false)
-      const isAuthorized = await registry.isApprovedForAll(user, creator)
+      const isAuthorized = await registry.isApprovedForAll(creator, user)
       isAuthorized.should.equal(false)
     })
 
@@ -401,7 +401,7 @@ contract('StandardAssetRegistry', accounts => {
     })
 
     it('is not authorized', async () => {
-      const isAuthorized = await registry.isApprovedForAll(creator, user)
+      const isAuthorized = await registry.isApprovedForAll(user, creator)
       isAuthorized.should.equal(false)
     })
 
@@ -444,8 +444,7 @@ contract('StandardAssetRegistry', accounts => {
     })
 
     it('should approve single asset for an operator if given authorization', async () => {
-      await registry.setApprovalForAll(anotherUser, true, { from: creator })
-      await registry.approve(operator, 0, { from: anotherUser })
+      await registry.approve(operator, 0)
       const approved = await registry.isAuthorized(operator, 0)
       approved.should.be.true
     })
