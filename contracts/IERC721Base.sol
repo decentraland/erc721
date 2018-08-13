@@ -25,8 +25,7 @@ interface IERC721Base {
     address indexed from,
     address indexed to,
     uint256 indexed assetId,
-    address operator,
-    bytes userData
+    address operator
   );
   event ApprovalForAll(
     address indexed operator,

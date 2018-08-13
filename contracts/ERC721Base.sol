@@ -220,7 +220,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
 
     _addAssetTo(beneficiary, assetId);
 
-    emit Transfer(0, beneficiary, assetId, msg.sender, '');
+    emit Transfer(0, beneficiary, assetId, msg.sender);
   }
 
   function _destroy(uint256 assetId) internal {
@@ -229,7 +229,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
 
     _removeAssetFrom(holder, assetId);
 
-    emit Transfer(holder, 0, assetId, msg.sender, '');
+    emit Transfer(holder, 0, assetId, msg.sender);
   }
 
   //
@@ -341,7 +341,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
       );
     }
 
-    emit Transfer(holder, to, assetId, operator, userData);
+    emit Transfer(holder, to, assetId, operator);
   }
 
   /**

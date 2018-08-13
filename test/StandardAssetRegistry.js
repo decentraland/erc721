@@ -8,13 +8,12 @@ const NonHolder = artifacts.require('NonHolder')
 
 const NONE = '0x0000000000000000000000000000000000000000'
 
-function checkTransferLog(log, assetId, from, to, operator, userData) {
+function checkTransferLog(log, assetId, from, to, operator) {
   log.event.should.be.eq('Transfer')
   log.args.assetId.should.be.bignumber.equal(assetId)
   log.args.from.should.be.equal(from)
   log.args.to.should.be.equal(to)
   log.args.operator.should.be.equal(operator)
-  log.args.userData.should.be.equal(userData)
 }
 
 function checkAuthorizationLog(log, operator, holder, authorized) {
@@ -293,8 +292,7 @@ contract('StandardAssetRegistry', accounts => {
         asset,
         creator,
         holder.address,
-        creator,
-        '0x' + Buffer.from(USER_DATA).toString('hex')
+        creator
       )
     })
 
