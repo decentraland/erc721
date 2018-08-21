@@ -471,7 +471,7 @@ contract('StandardAssetRegistry', accounts => {
       result.should.be.true
     })
     it('supports 821 interface', async () => {
-      const result = await registry.supportsInterface(0x7c0633c6)
+      const result = await registry.supportsInterface('0x7c0633c6')
       result.should.be.true
     })
   })
