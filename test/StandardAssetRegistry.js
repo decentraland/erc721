@@ -1,5 +1,5 @@
 import assertRevert from './helpers/assertRevert'
-import { assertError } from './helpers/assertRevert'
+
 const BigNumber = web3.BigNumber
 
 const StandardAssetRegistry = artifacts.require('StandardAssetRegistryTest')
@@ -8,13 +8,11 @@ const NonHolder = artifacts.require('NonHolder')
 
 const NONE = '0x0000000000000000000000000000000000000000'
 
-function checkTransferLog(log, assetId, from, to, operator, userData) {
+function checkTransferLog(log, assetId, from, to) {
   log.event.should.be.eq('Transfer')
   log.args.assetId.should.be.bignumber.equal(assetId)
   log.args.from.should.be.equal(from)
   log.args.to.should.be.equal(to)
-  log.args.operator.should.be.equal(operator)
-  log.args.userData.should.be.equal(userData)
 }
 
 function checkAuthorizationLog(log, operator, holder, authorized) {
@@ -31,20 +29,18 @@ function checkApproveLog(log, owner, operator, assetId) {
   log.args.assetId.should.be.bignumber.equal(assetId)
 }
 
-function checkCreateLog(log, holder, assetId, operator) {
+function checkCreateLog(log, holder, assetId) {
   log.event.should.be.eq('Transfer')
   log.args.from.should.be.equal(NONE)
   log.args.to.should.be.equal(holder)
   log.args.assetId.should.be.bignumber.equal(assetId)
-  log.args.operator.should.be.equal(operator)
 }
 
-function checkDestroyLog(log, holder, assetId, operator) {
+function checkDestroyLog(log, holder, assetId) {
   log.event.should.be.eq('Transfer')
   log.args.from.should.be.equal(holder)
   log.args.to.should.be.equal(NONE)
   log.args.assetId.should.be.bignumber.equal(assetId)
-  log.args.operator.should.be.equal(operator)
 }
 
 require('chai')
@@ -288,14 +284,7 @@ contract('StandardAssetRegistry', accounts => {
         USER_DATA,
         { from: creator }
       )
-      checkTransferLog(
-        logs[0],
-        asset,
-        creator,
-        holder.address,
-        creator,
-        '0x' + Buffer.from(USER_DATA).toString('hex')
-      )
+      checkTransferLog(logs[0], asset, creator, holder.address)
     })
 
     it('non holder does not receive the token', async () => {

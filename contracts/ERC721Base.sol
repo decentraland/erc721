@@ -220,7 +220,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
 
     _addAssetTo(beneficiary, assetId);
 
-    emit Transfer(0, beneficiary, assetId, msg.sender, '');
+    emit Transfer(0, beneficiary, assetId);
   }
 
   function _destroy(uint256 assetId) internal {
@@ -229,7 +229,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
 
     _removeAssetFrom(holder, assetId);
 
-    emit Transfer(holder, 0, assetId, msg.sender, '');
+    emit Transfer(holder, 0, assetId);
   }
 
   //
@@ -269,7 +269,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * @param assetId uint256 ID of the asset to be transferred
    */
   function safeTransferFrom(address from, address to, uint256 assetId) external {
-    return _doTransferFrom(from, to, assetId, '', msg.sender, true);
+    return _doTransferFrom(from, to, assetId, '', true);
   }
 
   /**
@@ -283,7 +283,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * @param userData bytes arbitrary user information to attach to this transfer
    */
   function safeTransferFrom(address from, address to, uint256 assetId, bytes userData) external {
-    return _doTransferFrom(from, to, assetId, userData, msg.sender, true);
+    return _doTransferFrom(from, to, assetId, userData, true);
   }
 
   /**
@@ -296,7 +296,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * @param assetId uint256 ID of the asset to be transferred
    */
   function transferFrom(address from, address to, uint256 assetId) external {
-    return _doTransferFrom(from, to, assetId, '', msg.sender, false);
+    return _doTransferFrom(from, to, assetId, '', false);
   }
 
   function _doTransferFrom(
@@ -304,13 +304,12 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
     address to,
     uint256 assetId,
     bytes userData,
-    address operator,
     bool doCheck
   )
     onlyAuthorized(assetId)
     internal
   {
-    _moveToken(from, to, assetId, userData, operator, doCheck);
+    _moveToken(from, to, assetId, userData, doCheck);
   }
 
   function _moveToken(
@@ -318,7 +317,6 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
     address to,
     uint256 assetId,
     bytes userData,
-    address operator,
     bool doCheck
   )
     isDestinataryDefined(to)
@@ -341,7 +339,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
       );
     }
 
-    emit Transfer(holder, to, assetId, operator, userData);
+    emit Transfer(holder, to, assetId);
   }
 
   /**

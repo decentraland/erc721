@@ -4,7 +4,7 @@ import '../contracts/FullAssetRegistry.sol';
 
 contract StandardAssetRegistryTest is FullAssetRegistry {
 
-  function StandardAssetRegistryTest () public {
+  constructor() public {
     _name = "Test";
     _symbol = "TEST";
     _description = "lorem ipsum";
@@ -24,6 +24,6 @@ contract StandardAssetRegistryTest is FullAssetRegistry {
 
   // Problematic override on truffle
   function safeTransfer(address from, address to, uint256 assetId, bytes data) public {
-    return _doTransferFrom(from, to, assetId, data, msg.sender, true);
+    return _doTransferFrom(from, to, assetId, data, true);
   }
 }

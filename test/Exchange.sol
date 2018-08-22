@@ -8,7 +8,7 @@ contract Exchange {
 
   StandardAssetRegistryTest internal nonFungible;
 
-  function Exchange (address _nonFungible) public {
+  constructor(address _nonFungible) public {
     nonFungible = StandardAssetRegistryTest(_nonFungible);
   }
 
