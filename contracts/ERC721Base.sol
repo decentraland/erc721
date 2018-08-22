@@ -296,7 +296,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
    * @param assetId uint256 ID of the asset to be transferred
    */
   function transferFrom(address from, address to, uint256 assetId) external {
-    return _doTransferFrom(from, to, assetId, "", false);
+    return _doTransferFrom(from, to, assetId, '', false);
   }
 
   function _doTransferFrom(

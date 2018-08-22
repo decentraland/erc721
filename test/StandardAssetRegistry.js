@@ -1,5 +1,5 @@
 import assertRevert from './helpers/assertRevert'
-import { assertError } from './helpers/assertRevert'
+
 const BigNumber = web3.BigNumber
 
 const StandardAssetRegistry = artifacts.require('StandardAssetRegistryTest')
@@ -29,14 +29,14 @@ function checkApproveLog(log, owner, operator, assetId) {
   log.args.assetId.should.be.bignumber.equal(assetId)
 }
 
-function checkCreateLog(log, holder, assetId, operator) {
+function checkCreateLog(log, holder, assetId) {
   log.event.should.be.eq('Transfer')
   log.args.from.should.be.equal(NONE)
   log.args.to.should.be.equal(holder)
   log.args.assetId.should.be.bignumber.equal(assetId)
 }
 
-function checkDestroyLog(log, holder, assetId, operator) {
+function checkDestroyLog(log, holder, assetId) {
   log.event.should.be.eq('Transfer')
   log.args.from.should.be.equal(holder)
   log.args.to.should.be.equal(NONE)
