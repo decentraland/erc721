@@ -17,7 +17,7 @@ interface IERC721Base {
   function setApprovalForAll(address operator, bool authorized) external;
 
   function getApprovedAddress(uint256 assetId) external view returns (address);
-  function isApprovedForAll(address operator, address assetOwner) external view returns (bool);
+  function isApprovedForAll(address assetHolder, address operator) external view returns (bool);
 
   function isAuthorized(address operator, uint256 assetId) external view returns (bool);
 
