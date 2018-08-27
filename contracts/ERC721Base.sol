@@ -13,6 +13,9 @@ import './ERC165.sol';
 contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
   using SafeMath for uint256;
 
+  // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
+  bytes4 private constant ERC721_RECEIVED = 0x150b7a02;
+
   //
   // Global Getters
   //
@@ -330,11 +333,10 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
     _addAssetTo(to, assetId);
 
     if (doCheck && _isContract(to)) {
-      // Equals to bytes4(keccak256("onERC721Received(address,uint256,bytes)"))
-      bytes4 ERC721_RECEIVED = bytes4(0xf0b9e5ba);
+      // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))
       require(
         IERC721Receiver(to).onERC721Received(
-          holder, assetId, userData
+          msg.sender, holder, assetId, userData
         ) == ERC721_RECEIVED
       );
     }
