@@ -16,6 +16,27 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
   // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
   bytes4 private constant ERC721_RECEIVED = 0x150b7a02;
 
+  bytes4 private constant InterfaceId_ERC165 = 0x01ffc9a7;
+  /*
+   * 0x01ffc9a7 ===
+   *   bytes4(keccak256('supportsInterface(bytes4)'))
+   */
+
+  bytes4 private constant Old_InterfaceId_ERC721 = 0x7c0633c6;
+  bytes4 private constant InterfaceId_ERC721 = 0x80ac58cd;
+   /*
+   * 0x80ac58cd ===
+   *   bytes4(keccak256('balanceOf(address)')) ^
+   *   bytes4(keccak256('ownerOf(uint256)')) ^
+   *   bytes4(keccak256('approve(address,uint256)')) ^
+   *   bytes4(keccak256('getApproved(uint256)')) ^
+   *   bytes4(keccak256('setApprovalForAll(address,bool)')) ^
+   *   bytes4(keccak256('isApprovedForAll(address,address)')) ^
+   *   bytes4(keccak256('transferFrom(address,address,uint256)')) ^
+   *   bytes4(keccak256('safeTransferFrom(address,address,uint256)')) ^
+   *   bytes4(keccak256('safeTransferFrom(address,address,uint256,bytes)'))
+   */
+
   //
   // Global Getters
   //
@@ -357,7 +378,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
     if (_interfaceID == 0xffffffff) {
       return false;
     }
-    return (_interfaceID == 0x01ffc9a7) || (_interfaceID == 0x7c0633c6);
+    return _interfaceID == InterfaceId_ERC165 || _interfaceID == Old_InterfaceId_ERC721 || _interfaceID == InterfaceId_ERC721;
   }
 
   //
