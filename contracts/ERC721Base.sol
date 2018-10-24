@@ -349,8 +349,8 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
     internal
   {
     address holder = _holderOf[assetId];
-    _removeAssetFrom(holder, assetId);
     _clearApproval(holder, assetId);
+    _removeAssetFrom(holder, assetId);
     _addAssetTo(to, assetId);
 
     if (doCheck && _isContract(to)) {
