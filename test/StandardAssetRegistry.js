@@ -505,8 +505,14 @@ contract('StandardAssetRegistry', accounts => {
       const result = await registry.supportsInterface('0x01ffc9a7')
       result.should.be.true
     })
+
     it('supports 821 interface', async () => {
       const result = await registry.supportsInterface('0x7c0633c6')
+      result.should.be.true
+    })
+
+    it('supports ERC721 standard interface', async () => {
+      const result = await registry.supportsInterface('0x80ac58cd')
       result.should.be.true
     })
   })
