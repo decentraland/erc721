@@ -38,11 +38,6 @@ contract AssetRegistryStorage {
   mapping(address => mapping(address => bool)) internal _operators;
 
   /**
-   * Unused
-   */
-  mapping(uint256 => address) internal _unused;
-
-  /**
    * Approval array
    */
   mapping(uint256 => address) internal _approval;

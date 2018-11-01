@@ -452,6 +452,52 @@ contract('StandardAssetRegistry', accounts => {
     it('isAuthorized should throw if operator is 0', async () => {
       await assertRevert(registry.isAuthorized(0, 0))
     })
+
+    it('should clean operators after transfer', async () => {
+      // Approve operator
+      await registry.approve(operator, 0)
+      let approved = await registry.isAuthorized(operator, 0)
+      approved.should.be.true
+
+      // Transfer form creator to anotherUser
+      await registry.safeTransferFrom(creator, anotherUser, 0)
+      const newOwner = await registry.ownerOf(0)
+      newOwner.should.be.equal(anotherUser)
+
+      // Check if authorization is clear
+      approved = await registry.isAuthorized(operator, 0)
+      approved.should.be.false
+
+      // Transfer from anotherUser to creator sended by operator
+      await assertRevert(
+        registry.safeTransferFrom(newOwner, creator, 0, { from: operator })
+      )
+    })
+
+    it('should not allow old token owner approvedForAll accounts to operate', async () => {
+      // Approve operator
+      await registry.setApprovalForAll(operator, true)
+      let approved = await registry.isAuthorized(operator, 0)
+      approved.should.be.true
+      let isAuthorized = await registry.isApprovedForAll(creator, operator)
+      isAuthorized.should.be.true
+
+      // Transfer form creator to anotherUser
+      await registry.safeTransferFrom(creator, anotherUser, 0)
+      const newOwner = await registry.ownerOf(0)
+      newOwner.should.be.equal(anotherUser)
+
+      // Check if authorizations are as expected
+      approved = await registry.isAuthorized(operator, 0)
+      approved.should.be.false
+      isAuthorized = await registry.isApprovedForAll(creator, operator)
+      isAuthorized.should.be.true
+
+      // Transfer from anotherUser to creator sended by operator
+      await assertRevert(
+        registry.safeTransferFrom(newOwner, creator, 0, { from: operator })
+      )
+    })
   })
 
   describe('eip165 interfaces', () => {
