@@ -352,6 +352,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
     _clearApproval(holder, assetId);
     _removeAssetFrom(holder, assetId);
     _addAssetTo(to, assetId);
+    emit Transfer(holder, to, assetId);
 
     if (doCheck && _isContract(to)) {
       // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))
@@ -361,8 +362,6 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
         ) == ERC721_RECEIVED
       );
     }
-
-    emit Transfer(holder, to, assetId);
   }
 
   /**
