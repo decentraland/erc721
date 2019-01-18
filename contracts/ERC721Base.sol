@@ -346,7 +346,7 @@ contract ERC721Base is AssetRegistryStorage, IERC721Base, ERC165 {
     isDestinataryDefined(to)
     destinataryIsNotHolder(assetId, to)
     isCurrentOwner(from, assetId)
-    internal
+    private
   {
     address holder = _holderOf[assetId];
     _clearApproval(holder, assetId);
