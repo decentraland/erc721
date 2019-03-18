@@ -22,6 +22,18 @@ interface IERC721Base {
   function isAuthorized(address operator, uint256 assetId) external view returns (bool);
 
   /**
+  * @dev Deprecated transfer event. Now we use the standard with three parameters
+  * It is only used in the ABI to get old transfer events. Do not remove
+  */
+  event Transfer(
+    address indexed from,
+    address indexed to,
+    uint256 indexed assetId,
+    address operator,
+    bytes userData,
+    bytes operatorData
+  );
+  /**
    * @dev Deprecated transfer event. Now we use the standard with three parameters
    * It is only used in the ABI to get old transfer events. Do not remove
    */
