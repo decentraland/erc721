@@ -15,9 +15,9 @@ function checkTransferLog(log, assetId, from, to) {
   log.args.to.should.be.equal(to)
 }
 
-function checkAuthorizationLog(log, operator, holder, authorized) {
+function checkAuthorizationLog(log, holder, operator, authorized) {
   log.event.should.be.eq('ApprovalForAll')
-  log.args.operator.should.be.bignumber.equal(operator)
+  log.args.operator.should.be.equal(operator)
   log.args.holder.should.be.equal(holder)
   log.args.authorized.should.be.equal(authorized)
 }
