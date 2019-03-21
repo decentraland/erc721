@@ -1,6 +1,6 @@
 {
   "name": "erc821",
-  "version": "4.3.0",
+  "version": "5.2.0",
   "description": "Contract for ERC 821 (now 721)",
   "scripts": {
     "test": "scripts/test.sh",
