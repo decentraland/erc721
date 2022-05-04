@@ -438,8 +438,32 @@ contract('StandardAssetRegistry', accounts => {
       approved.should.be.true
     })
 
+    it('approve by a co-owner', async () => {
+      await registry.setApprovalForAll(anotherUser, true)
+      await registry.approve(operator, 0, { from: anotherUser })
+
+      const approved = await registry.isAuthorized(operator, 0)
+      approved.should.be.true
+    })
+
     it('approve should throw if holder = operator', async () => {
       await assertRevert(registry.approve(creator, 0))
+    })
+
+    it('approve should throw if holder is not a co-owner', async () => {
+      await assertRevert(registry.approve(creator, 0, { from: anotherUser }))
+
+      await registry.setApprovalForAll(creator, true, { from: anotherUser })
+      await assertRevert(registry.approve(operator, 0, { from: anotherUser }))
+
+      await registry.setApprovalForAll(anotherUser, true)
+      await registry.approve(operator, 0, { from: anotherUser })
+      
+      const approved = await registry.isAuthorized(operator, 0)
+      approved.should.be.true
+
+      await registry.setApprovalForAll(anotherUser, false)
+      await assertRevert(registry.approve(operator, 0, { from: anotherUser }))
     })
 
     it('approve emits Approve event', async () => {
